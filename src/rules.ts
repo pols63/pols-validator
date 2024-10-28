@@ -301,7 +301,6 @@ export class Rules extends RulesEngine {
 				if (PUtils.getType(wrapper.value) != 'Object') {
 					return message
 				}
-				wrapper.value = PUtils.Object.clone(wrapper.value)
 			}
 
 			return { schema, prefix }
@@ -346,6 +345,8 @@ export class Rules extends RulesEngine {
 					case 1:
 						wrapper.value = true
 						return
+					default:
+						return message
 				}
 			} else {
 				return typeof wrapper.value == 'boolean' ? null : message

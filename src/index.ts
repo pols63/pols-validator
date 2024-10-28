@@ -1,3 +1,4 @@
+import { PUtils } from "pols-utils"
 import { Rules } from "./rules"
 import { RulesEngine, RulesParams, Wrapper } from "./rulesEngine"
 export { RulesEngine } from './rulesEngine'
@@ -14,6 +15,8 @@ export type EvaluateResponse<T> = {
 
 export const validate = <T>(target: unknown, rules: RulesEngine): EvaluateResponse<T> => {
 	const errorMessages: string[] = []
+
+	if (typeof target == 'string') target = target.trim()
 
 	const isEmpty = target == null || (typeof target == 'string' && !target)
 	const label = rules.label ?? 'Este valor'
@@ -35,7 +38,7 @@ export const validate = <T>(target: unknown, rules: RulesEngine): EvaluateRespon
 	}
 
 	const wrapper: Wrapper<T> = {
-		value: target as T,
+		value: PUtils.clone(target) as T,
 		label
 	}
 	for (const validationFunction of Object.values(rules.collection)) {
@@ -43,19 +46,26 @@ export const validate = <T>(target: unknown, rules: RulesEngine): EvaluateRespon
 		if (!result) continue
 		if (typeof result == 'string') {
 			errorMessages.push(result)
+			break
 		} else {
 			if (wrapper.value == null || typeof wrapper.value != 'object') throw new Error(`El valor no es un objeto para ser validado contra un esquema: ${wrapper.value}`)
 
+			const newResult: Record<string, unknown> = {}
 			for (const key in result.schema) {
 				const rulesInside = result.schema[key]
-				const labelIndise = rulesInside.label ?? 'Este valor'
+				const labelIndise = rulesInside.label ?? key
 				rulesInside.label = `${result.prefix ? `${result.prefix} ` : ''}${labelIndise}`
 
-				const result2 = validate(wrapper.value[key], rulesInside)
+				newResult[key] = wrapper.value[key]
+
+				const result2 = validate(newResult[key], rulesInside)
 				if (result2.error == true) {
 					errorMessages.push(...result2.messages)
+				} else {
+					newResult[key] = result2.result
 				}
 			}
+			wrapper.value = newResult as T
 		}
 	}
 

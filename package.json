@@ -23,6 +23,6 @@
 		"typescript-eslint": "^8.11.0"
 	},
 	"dependencies": {
-		"pols-utils": "^1.0.1"
+		"pols-utils": "^1.0.5"
 	}
 }
