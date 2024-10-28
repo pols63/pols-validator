@@ -1,5 +1,6 @@
 import { Rules } from "./rules"
-import { RulesEngine, Wrapper } from "./rulesEngine"
+import { RulesEngine, RulesParams, Wrapper } from "./rulesEngine"
+export { RulesEngine } from './rulesEngine'
 
 export type EvaluateResponse<T> = {
 	error: false
@@ -73,6 +74,4 @@ export const validate = <T>(target: unknown, rules: RulesEngine): EvaluateRespon
 	}
 }
 
-export const rules = () => new Rules
-
-export { RulesEngine } from './rulesEngine'
+export const rules = (params?: RulesParams) => new Rules(params)

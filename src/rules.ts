@@ -1,5 +1,4 @@
-import { DatePlus } from "pols-utilities/datePlus"
-import { PNumber, PObject, PString, PUtils } from "pols-utilities"
+import { PDate, PUtils } from "pols-utils"
 import { RulesEngine, Wrapper } from "./rulesEngine"
 
 export class Rules extends RulesEngine {
@@ -25,8 +24,8 @@ export class Rules extends RulesEngine {
 	isDateTime() {
 		this.add(this.isDateTime.name, (wrapper: Wrapper) => {
 			const message = `'${wrapper.label}' tiene un formato de fecha y hora no válido`
-			if (typeof wrapper.value == 'string' || typeof wrapper.value == 'number' || wrapper.value instanceof Date || wrapper.value instanceof DatePlus) {
-				const newDate = new DatePlus(wrapper.value)
+			if (typeof wrapper.value == 'string' || typeof wrapper.value == 'number' || wrapper.value instanceof Date || wrapper.value instanceof PDate) {
+				const newDate = new PDate(wrapper.value)
 				if (newDate.isInvalidDate) return message
 				wrapper.value = newDate
 			} else {
@@ -37,7 +36,7 @@ export class Rules extends RulesEngine {
 	}
 
 	isDate() {
-		return this.isDateTime().add(this.isDate.name, (wrapper: Wrapper<DatePlus>) => {
+		return this.isDateTime().add(this.isDate.name, (wrapper: Wrapper<PDate>) => {
 			wrapper.value.clearTime()
 		})
 	}
@@ -57,11 +56,11 @@ export class Rules extends RulesEngine {
 				if (middle) {
 					if (hours > 0 && hours <= 12) {
 						if (middle === 'p') hours += 12
-						wrapper.value = `${PString.padLeft(hours, 2)}:${PString.padLeft(minutes, 2)}:${PString.padLeft(seconds, 2)}`
+						wrapper.value = `${PUtils.String.padLeft(hours, 2)}:${PUtils.String.padLeft(minutes, 2)}:${PUtils.String.padLeft(seconds, 2)}`
 						return
 					}
 				} else {
-					wrapper.value = `${PString.padLeft(hours, 2)}:${PString.padLeft(minutes, 2)}:${PString.padLeft(seconds, 2)}`
+					wrapper.value = `${PUtils.String.padLeft(hours, 2)}:${PUtils.String.padLeft(minutes, 2)}:${PUtils.String.padLeft(seconds, 2)}`
 					return
 				}
 			}
@@ -281,8 +280,8 @@ export class Rules extends RulesEngine {
 	beforeOrSameAsNow() {
 		return this
 			.isDateTime()
-			.add(this.beforeOrSameAsNow.name, (wrapper: Wrapper<DatePlus>) => {
-				const now = new DatePlus
+			.add(this.beforeOrSameAsNow.name, (wrapper: Wrapper<PDate>) => {
+				const now = new PDate
 				if (wrapper.value.time > now.time) return `'${wrapper.label}' debe ser anterior o igual a 'ahora'`
 			})
 	}
@@ -302,7 +301,7 @@ export class Rules extends RulesEngine {
 				if (PUtils.getType(wrapper.value) != 'Object') {
 					return message
 				}
-				wrapper.value = PObject.clone(wrapper.value)
+				wrapper.value = PUtils.Object.clone(wrapper.value)
 			}
 
 			return { schema, prefix }
@@ -382,7 +381,7 @@ export class Rules extends RulesEngine {
 	round(decimals: number) {
 		this.isNumber()
 		this.add(this.round.name, (wrapper: Wrapper) => {
-			wrapper.value = PNumber.round(wrapper.value as number, decimals)
+			wrapper.value = PUtils.Number.round(wrapper.value as number, decimals)
 		})
 		return this
 	}
@@ -414,7 +413,7 @@ export class Rules extends RulesEngine {
 	capitalize() {
 		this.isAlphanumeric()
 		this.add(this.capitalize.name, (wrapper: Wrapper) => {
-			wrapper.value = PString.capitalize(wrapper.value as string)
+			wrapper.value = PUtils.String.capitalize(wrapper.value as string)
 		})
 		return this
 	}
