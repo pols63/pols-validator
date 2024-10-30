@@ -1,13 +1,11 @@
 {
 	"name": "pols-validator",
 	"version": "1.0.0",
-	"main": "dist/cjs/index.js",
-	"module": "dist/esm/index.js",
-	"types": "dist/cjs/index.d.ts",
+	"main": "dist/index.js",
+	"module": "dist/index.js",
+	"types": "dist/index.d.ts",
 	"scripts": {
-		"build:cjs": "npx tsc --project tsconfig.cjs.json",
-		"build:esm": "npx tsc --project tsconfig.esm.json",
-		"build": "npm run build:cjs && npm run build:esm",
+		"build": "npx tsc",
 		"test": "npx ts-node-dev -r tsconfig-paths/register --project tsconfig.json"
 	},
 	"author": "Jean Paul Sánchez mendoza",
@@ -23,6 +21,6 @@
 		"typescript-eslint": "^8.11.0"
 	},
 	"dependencies": {
-		"pols-utils": "^1.0.5"
+		"pols-utils": "^1.1.2"
 	}
 }
