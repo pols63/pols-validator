@@ -6,10 +6,7 @@ export type RulesParams = {
 	default?: unknown
 })
 
-export type ValidationFunction = (wrapper: Wrapper, ...args: unknown[]) => string | void | null | undefined | {
-	schema: Record<string, RulesEngine>
-	prefix?: string
-}
+export type ValidationFunction = (wrapper: Wrapper, ...args: unknown[]) => string | string[] | void | null | undefined
 
 export type Wrapper<T = unknown> = {
 	value: T

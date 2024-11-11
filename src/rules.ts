@@ -1,5 +1,46 @@
 import { PDate, PUtils } from "pols-utils"
 import { RulesEngine, Wrapper } from "./rulesEngine"
+import { validate } from "./validate"
+
+const isObject = (wrapper: Wrapper, schema?: Record<string, RulesEngine>, prefix?: string) => {
+	const message = `'${wrapper.label}' debe ser un objeto`
+
+	if (typeof wrapper.value == 'string') {
+		try {
+			wrapper.value = JSON.parse(wrapper.value)
+		} catch {
+			return message
+		}
+		if (PUtils.getType(wrapper.value) != 'Object') return message
+	} else {
+		if (PUtils.getType(wrapper.value) != 'Object') {
+			return message
+		}
+	}
+
+	/* Realiza la validación de cada propiedad */
+	const newWrapperValue: Record<string, unknown> = {}
+	const errorMessages: string[] = []
+	for (const key in schema) {
+		const rulesInside = schema[key]
+		const labelIndise = rulesInside.label ?? key
+		rulesInside.label = `${prefix ?? ''}${labelIndise}`
+
+		newWrapperValue[key] = wrapper.value[key]
+
+		const result2 = validate(newWrapperValue[key], rulesInside)
+		if (result2.error == true) {
+			errorMessages.push(...result2.messages)
+		} else {
+			newWrapperValue[key] = result2.result
+		}
+	}
+	if (errorMessages.length) {
+		return errorMessages
+	} else {
+		wrapper.value = newWrapperValue
+	}
+}
 
 export class Rules extends RulesEngine {
 	isAlphanumeric() {
@@ -151,71 +192,38 @@ export class Rules extends RulesEngine {
 		return this
 	}
 
-	// isArray(checkingElements?: (i: number) => RulesEngine) {
-	// 	this.add(this.isArray.name, (wrapper: Wrapper) => {
-	// 		const message = `'${wrapper.label}' debe ser una lista de elementos`
-	// 		if (typeof wrapper.value == 'string') {
-	// 			try {
-	// 				const value = JSON.parse(wrapper.value)
-	// 				if (!(value instanceof Array)) return message
-	// 				wrapper.value = value
-	// 			} catch (err) {
-	// 				return message
-	// 			}
-	// 		} else {
-	// 			if (!(wrapper.value instanceof Array)) return message
-	// 		}
-	// 		if (checkingElements) {
-	// 			const value = wrapper.value as unknown[]
-	// 			const messageErrors: string[] = []
-	// 			const result: unknown[] = []
-	// 			for (const [i, t] of value.entries()) {
-	// 				const p = wrapper.validator({
-	// 					value: t
-	// 				}, {
-	// 					value: {
-	// 						...checkingElements(i),
-	// 						to: undefined,
-	// 					}
-	// 				})
-	// 				if (p.error == true) {
-	// 					messageErrors.push(...p.messages)
-	// 				} else {
-	// 					result.push(p.result['value'])
-	// 				}
-	// 			}
-	// 			if (messageErrors.length) {
-	// 				return messageErrors
-	// 			} else {
-	// 				wrapper.value = result
-	// 			}
-	// 		}
-	// 	})
-	// 	return this
-	// }
+	isArray() {
+		return this.add(this.isArray.name, (wrapper: Wrapper) => {
+			const message = `'${wrapper.label}' debe ser una lista de elementos`
+			if (typeof wrapper.value == 'string') {
+				try {
+					const value = JSON.parse(wrapper.value)
+					if (!(value instanceof Array)) return message
+					wrapper.value = value
+				} catch (err) {
+					return message
+				}
+			} else {
+				if (!(wrapper.value instanceof Array)) return message
+			}
+		})
+	}
 
-	// isArrayOfObjects(checkingElements?: (i: number) => FieldsStructure, prefixString?: (i: number) => string) {
-	// 	this.isArray()
-	// 	this.add(this.isArrayOfObjects.name, (wrapper: Wrapper<unknown[]>) => {
-	// 		const message = `'${wrapper.label}' debe ser una lista de objetos`
-	// 		const messages: string[] = []
-	// 		for (const [i, v] of wrapper.value.entries()) {
-	// 			const result = isObject(v)
-	// 			if (result.error == true) return message
-	// 			wrapper.value[i] = result.result
-	// 			if (checkingElements) {
-	// 				const v = wrapper.validator(wrapper.value[i], checkingElements(i), prefixString?.(i))
-	// 				if (v.error == true) {
-	// 					messages.push(...v.messages)
-	// 				} else {
-	// 					wrapper.value[i] = v.result
-	// 				}
-	// 			}
-	// 		}
-	// 		if (messages.length) return messages
-	// 	})
-	// 	return this
-	// }
+	isArrayOfObjects(schema?: (index: number) => Record<string, RulesEngine>, prefix?: (index: number) => string) {
+		return this.isArray().add(this.isArrayOfObjects.name, (wrapper: Wrapper<unknown[]>) => {
+			const message = `'${wrapper.label}' debe ser una lista de objetos`
+			const messages: string[] = []
+			if (schema) {
+				for (const [i, v] of wrapper.value.entries()) {
+					const newWrapper: Wrapper = {
+						label: '',
+						value: v
+					}
+				}
+			}
+			if (messages.length) return messages
+		})
+	}
 
 	isIn(...elements: unknown[]) {
 		this.add(this.isIn.name, (wrapper: Wrapper) => {
@@ -288,22 +296,7 @@ export class Rules extends RulesEngine {
 
 	isObject(schema?: Record<string, RulesEngine>, prefix?: string) {
 		return this.add(this.isObject.name, (wrapper: Wrapper) => {
-			const message = `'${wrapper.label}' debe ser un objeto`
-
-			if (typeof wrapper.value == 'string') {
-				try {
-					wrapper.value = JSON.parse(wrapper.value)
-				} catch {
-					return message
-				}
-				if (PUtils.getType(wrapper.value) != 'Object') return message
-			} else {
-				if (PUtils.getType(wrapper.value) != 'Object') {
-					return message
-				}
-			}
-
-			return { schema, prefix }
+			return isObject(wrapper, schema, prefix)
 		})
 	}
 
