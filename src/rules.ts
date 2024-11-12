@@ -211,13 +211,17 @@ export class Rules extends RulesEngine {
 
 	isArrayOfObjects(schema?: (index: number) => Record<string, RulesEngine>, prefix?: (index: number) => string) {
 		return this.isArray().add(this.isArrayOfObjects.name, (wrapper: Wrapper<unknown[]>) => {
-			const message = `'${wrapper.label}' debe ser una lista de objetos`
 			const messages: string[] = []
-			if (schema) {
-				for (const [i, v] of wrapper.value.entries()) {
-					const newWrapper: Wrapper = {
-						label: '',
-						value: v
+			for (const [i, value] of wrapper.value.entries()) {
+				const v = isObject({
+					label: prefix?.(i) ?? `Item ${i}`,
+					value
+				}, schema?.(i))
+				if (v) {
+					if (v instanceof Array) {
+						messages.push(...v)
+					} else {
+						messages.push(v)
 					}
 				}
 			}
@@ -245,53 +249,41 @@ export class Rules extends RulesEngine {
 		return this
 	}
 
-	// hasElements(checkingElements?: (i: number) => FieldStructure) {
-	// 	this.isArray(checkingElements)
-	// 	this.add(this.hasElements.name, (wrapper: Wrapper) => {
-	// 		if (!(wrapper.value as unknown[]).length) return `'${wrapper.label}' debe ser una lista con al menos un elemento`
-	// 	})
-	// 	return this
-	// }
+	hasElements() {
+		return this.isArray().add(this.hasElements.name, (wrapper: Wrapper<unknown[]>) => {
+			if (!wrapper.value.length) return `'${wrapper.label}' debe contenedor al menos un elemento`
+		})
+	}
 
 	gt(limit: number) {
-		this.isNumber()
-		this.add(this.gt.name, (wrapper: Wrapper) => {
+		return this.isNumber().add(this.gt.name, (wrapper: Wrapper) => {
 			if (wrapper.value as number <= limit) return `'${wrapper.label}' debe ser mayor a '${limit}'`
 		})
-		return this
 	}
 
 	gte(limit: number) {
-		this.isNumber()
-		this.add(this.gte.name, (wrapper: Wrapper) => {
+		return this.isNumber().add(this.gte.name, (wrapper: Wrapper) => {
 			if (wrapper.value as number < limit) return `'${wrapper.label}' debe ser mayor o igual a '${limit}'`
 		})
-		return this
 	}
 
 	lt(limit: number) {
-		this.isNumber()
-		this.add(this.lt.name, (wrapper: Wrapper) => {
+		return this.isNumber().add(this.lt.name, (wrapper: Wrapper) => {
 			if (wrapper.value as number >= limit) return `'${wrapper.label}' debe ser menor a '${limit}'`
 		})
-		return this
 	}
 
 	lte(limit: number) {
-		return this
-			.isNumber()
-			.add(this.lte.name, (wrapper: Wrapper) => {
-				if (wrapper.value as number > limit) return `'${wrapper.label}' debe ser menor o igual a '${limit}'`
-			})
+		return this.isNumber().add(this.lte.name, (wrapper: Wrapper) => {
+			if (wrapper.value as number > limit) return `'${wrapper.label}' debe ser menor o igual a '${limit}'`
+		})
 	}
 
 	beforeOrSameAsNow() {
-		return this
-			.isDateTime()
-			.add(this.beforeOrSameAsNow.name, (wrapper: Wrapper<PDate>) => {
-				const now = new PDate
-				if (wrapper.value.time > now.time) return `'${wrapper.label}' debe ser anterior o igual a 'ahora'`
-			})
+		return this.isDateTime().add(this.beforeOrSameAsNow.name, (wrapper: Wrapper<PDate>) => {
+			const now = new PDate
+			if (wrapper.value.time > now.time) return `'${wrapper.label}' debe ser anterior o igual a 'ahora'`
+		})
 	}
 
 	isObject(schema?: Record<string, RulesEngine>, prefix?: string) {
@@ -301,7 +293,7 @@ export class Rules extends RulesEngine {
 	}
 
 	isBoolean() {
-		this.add(this.isBoolean.name, (wrapper: Wrapper) => {
+		return this.add(this.isBoolean.name, (wrapper: Wrapper) => {
 			const message = `'${wrapper.label}' debe ser de tipo booleano`
 			if (typeof wrapper.value == 'string') {
 				const value = wrapper.value.trim().toUpperCase()
@@ -345,7 +337,6 @@ export class Rules extends RulesEngine {
 				return typeof wrapper.value == 'boolean' ? null : message
 			}
 		})
-		return this
 	}
 
 	upper() {
