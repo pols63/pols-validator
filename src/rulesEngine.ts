@@ -24,10 +24,10 @@ export class RulesEngine {
 	label: string
 	required: boolean = false
 	default: unknown = null
-	collection: Record<string, ValidationFunction> = {}
+	collection: ValidationFunction[] = []
 
-	protected add(name: string, validationFunction: ValidationFunction) {
-		if (!this.collection[name]) this.collection[name] = validationFunction
+	protected add(name: string, validationFunction: ValidationFunction, executeOnce = false) {
+		this.collection.push(validationFunction)
 		return this
 	}
 }

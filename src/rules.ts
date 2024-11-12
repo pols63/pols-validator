@@ -153,43 +153,45 @@ export class Rules extends RulesEngine {
 	}
 
 	maxLength(limit: number) {
-		this.isAlphanumeric()
-		this.add(this.maxLength.name, (wrapper: Wrapper) => {
-			if ((wrapper.value as string).length > limit) return `'${wrapper.label}' debe contener '${limit} ${limit == 1 ? 'caracter' : 'caracteres'}' como máximo`
+		return this.add(this.maxLength.name, (wrapper: Wrapper) => {
+			if (wrapper.value instanceof Array) {
+				return wrapper.value.length > limit ? `'${wrapper.label}' debe contener '${limit} ${limit == 1 ? 'elementos' : 'elementos'}' como máximo` : null
+			} else if (typeof wrapper.value == 'string') {
+				return wrapper.value.length > limit ? `'${wrapper.label}' debe contener '${limit} ${limit == 1 ? 'caracter' : 'caracteres'}' como máximo` : null
+			} else {
+				return `'${wrapper.label}' no es de un tipo válido`
+			}
 		})
-		return this
 	}
-
-	// maxCount(limit: number) {
-	// 	this.isArray()
-	// 	this.add(this.maxLength.name, (wrapper: Wrapper<unknown[]>) => {
-	// 		if (wrapper.value.length > limit) return `'${wrapper.label}' debe contener '${limit} ${limit == 1 ? 'elemento' : 'elementos'}' como máximo`
-	// 	})
-	// 	return this
-	// }
 
 	minLength(limit: number) {
-		this.isAlphanumeric()
-		this.add(this.minLength.name, (wrapper: Wrapper) => {
-			if ((wrapper.value as string).length < limit) return `'${wrapper.label}' debe contener '${limit} ${limit == 1 ? 'caracter' : 'caracteres'}' como mínimo`
+		return this.add(this.minLength.name, (wrapper: Wrapper) => {
+			if (wrapper.value instanceof Array) {
+				return wrapper.value.length < limit ? `'${wrapper.label}' debe contener '${limit} ${limit == 1 ? 'elementos' : 'elementos'}' como mínimo` : null
+			} else if (typeof wrapper.value == 'string') {
+				return wrapper.value.length < limit ? `'${wrapper.label}' debe contener '${limit} ${limit == 1 ? 'caracter' : 'caracteres'}' como mínimo` : null
+			} else {
+				return `'${wrapper.label}' no es de un tipo válido`
+			}
 		})
-		return this
 	}
 
-	length(limit: number) {
-		this.isAlphanumeric()
-		this.add(this.length.name, (wrapper: Wrapper) => {
-			if ((wrapper.value as string).length != limit) return `'${wrapper.label}' debe contener sólo '${limit} ${limit == 1 ? 'caracter' : 'caracteres'}'`
+	hasFixedLength(limit: number) {
+		return this.add(this.hasFixedLength.name, (wrapper: Wrapper) => {
+			if (wrapper.value instanceof Array) {
+				return wrapper.value.length < limit ? `'${wrapper.label}' debe contener sólo '${limit} ${limit == 1 ? 'elementos' : 'elementos'}'` : null
+			} else if (typeof wrapper.value == 'string') {
+				return wrapper.value.length < limit ? `'${wrapper.label}' debe contener sólo '${limit} ${limit == 1 ? 'caracter' : 'caracteres'}'` : null
+			} else {
+				return `'${wrapper.label}' no es de un tipo válido`
+			}
 		})
-		return this
 	}
 
 	left(limit: number) {
-		this.isAlphanumeric()
-		this.add(this.length.name, (wrapper: Wrapper) => {
+		return this.isAlphanumeric().add(this.left.name, (wrapper: Wrapper) => {
 			(wrapper.value as string) = (wrapper.value as string).substring(0, limit)
 		})
-		return this
 	}
 
 	isArray() {

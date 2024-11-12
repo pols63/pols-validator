@@ -39,7 +39,7 @@ export const validate = <T>(target: unknown, rules: RulesEngine): EvaluateRespon
 		value: PUtils.clone(target) as T,
 		label
 	}
-	for (const validationFunction of Object.values(rules.collection)) {
+	for (const validationFunction of rules.collection) {
 		const result = validationFunction(wrapper)
 		if (!result) continue
 		if (typeof result == 'string') {
