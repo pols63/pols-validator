@@ -397,8 +397,20 @@ export class PRules extends PRulesEngine {
 	}
 
 	split(separator: string | RegExp) {
-		return this.isAlphanumeric().add(this.split.name, (wrapper: PRulesWrapper) => {
-			wrapper.value = (wrapper.value as any).split(separator)
+		return this.isAlphanumeric().add(this.split.name, (wrapper: PRulesWrapper<string>) => {
+			wrapper.value = wrapper.value.split(separator) as any
+		})
+	}
+
+	floor() {
+		return this.isNumber().add(this.floor.name, (wrapper: PRulesWrapper<number>) => {
+			wrapper.value = Math.floor(wrapper.value)
+		})
+	}
+
+	ceil() {
+		return this.isNumber().add(this.ceil.name, (wrapper: PRulesWrapper<number>) => {
+			wrapper.value = Math.ceil(wrapper.value)
 		})
 	}
 }
