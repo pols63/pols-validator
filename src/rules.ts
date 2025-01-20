@@ -193,8 +193,8 @@ export class PRules extends PRulesEngine {
 		})
 	}
 
-	isArray() {
-		return this.add(this.isArray.name, (wrapper: PRulesWrapper) => {
+	isArray(rulesGenerator?: (index: number) => PRules) {
+		return this.add(this.isArray.name, (wrapper: PRulesWrapper<unknown[]>) => {
 			const message = `'${wrapper.label}' debe ser una lista de elementos`
 			if (typeof wrapper.value == 'string') {
 				try {
@@ -207,23 +207,17 @@ export class PRules extends PRulesEngine {
 			} else {
 				if (!(wrapper.value instanceof Array)) return message
 			}
-		})
-	}
 
-	isArrayOfObjects(schema?: (index: number) => Record<string, PRules>, prefix?: (index: number) => string) {
-		return this.isArray().add(this.isArrayOfObjects.name, (wrapper: PRulesWrapper<unknown[]>) => {
+			/* Si se ha definido un generador de reglas, se itera cada elemento */
 			const messages: string[] = []
-			for (const [i, value] of wrapper.value.entries()) {
-				const v = isObject(this, {
-					label: prefix?.(i) ?? `Item ${i}`,
-					value
-				}, schema?.(i))
-				if (v) {
-					if (v instanceof Array) {
-						messages.push(...v)
-					} else {
-						messages.push(v)
-					}
+			for (const [i, element] of wrapper.value.entries()) {
+				const rules = rulesGenerator(i)
+				rules.label = `${this.label ? `${this.label}${rules.label ? this.separator : ''}` : ''}${rules.label ?? ''}`
+				const result = rules.validate(element)
+				if (result.error == true) {
+					messages.push(...result.messages)
+				} else {
+					wrapper.value[i] = result.result
 				}
 			}
 			if (messages.length) return messages
@@ -231,7 +225,7 @@ export class PRules extends PRulesEngine {
 	}
 
 	isIn(...elements: unknown[]) {
-		this.add(this.isIn.name, (wrapper: PRulesWrapper) => {
+		return this.add(this.isIn.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value instanceof Array) {
 				for (const v of wrapper.value) {
 					if (!elements.includes(v)) return `'${wrapper.label}' no contiene valores válidos`
@@ -240,14 +234,12 @@ export class PRules extends PRulesEngine {
 				if (!elements.includes(wrapper.value)) return `'${wrapper.label}' no tiene un valor válido`
 			}
 		})
-		return this
 	}
 
 	isNotIn(...elements: unknown[]) {
-		this.add(this.isNotIn.name, (wrapper: PRulesWrapper) => {
+		return this.add(this.isNotIn.name, (wrapper: PRulesWrapper) => {
 			if (elements.includes(wrapper.value)) return `'${wrapper.label}' no tiene un valor válido`
 		})
-		return this
 	}
 
 	hasElements() {
