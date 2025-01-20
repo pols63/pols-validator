@@ -1,8 +1,7 @@
 import { PDate, PUtils } from "pols-utils"
-import { RulesEngine, Wrapper } from "./rulesEngine"
-import { validate } from "./validate"
+import { PRulesEngine, PRulesWrapper } from "./rulesEngine"
 
-const isObject = (wrapper: Wrapper, schema?: Record<string, RulesEngine>, prefix?: string) => {
+const isObject = (context: PRules, wrapper: PRulesWrapper, schema?: Record<string, PRules>) => {
 	const message = `'${wrapper.label}' debe ser un objeto`
 
 	if (typeof wrapper.value == 'string') {
@@ -24,11 +23,11 @@ const isObject = (wrapper: Wrapper, schema?: Record<string, RulesEngine>, prefix
 	for (const key in schema) {
 		const rulesInside = schema[key]
 		const labelIndise = rulesInside.label ?? key
-		rulesInside.label = `${prefix ?? ''}${labelIndise}`
+		rulesInside.label = `${context.label ? `${context.label}${context.separator}` : ''}${labelIndise}`
 
 		newWrapperValue[key] = wrapper.value[key]
 
-		const result2 = validate(newWrapperValue[key], rulesInside)
+		const result2 = rulesInside.validate(newWrapperValue[key])
 		if (result2.error == true) {
 			errorMessages.push(...result2.messages)
 		} else {
@@ -42,9 +41,9 @@ const isObject = (wrapper: Wrapper, schema?: Record<string, RulesEngine>, prefix
 	}
 }
 
-export class Rules extends RulesEngine {
+export class PRules extends PRulesEngine {
 	isAlphanumeric() {
-		this.add(this.isAlphanumeric.name, (wrapper: Wrapper) => {
+		this.add(this.isAlphanumeric.name, (wrapper: PRulesWrapper) => {
 			if (typeof wrapper.value == 'number') {
 				wrapper.value = wrapper.value.toString()
 			} else if (typeof wrapper.value != 'string') {
@@ -56,14 +55,14 @@ export class Rules extends RulesEngine {
 
 	isEmailAddress() {
 		this.isAlphanumeric()
-		this.add(this.isEmailAddress.name, (wrapper: Wrapper) => {
+		this.add(this.isEmailAddress.name, (wrapper: PRulesWrapper) => {
 			if (!(wrapper.value as string).match(/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/)) return `'${wrapper.label}' debe ser una dirección de correo`
 		})
 		return this
 	}
 
 	isDateTime() {
-		this.add(this.isDateTime.name, (wrapper: Wrapper) => {
+		this.add(this.isDateTime.name, (wrapper: PRulesWrapper) => {
 			const message = `'${wrapper.label}' tiene un formato de fecha y hora no válido`
 			if (typeof wrapper.value == 'string' || typeof wrapper.value == 'number' || wrapper.value instanceof Date || wrapper.value instanceof PDate) {
 				const newDate = new PDate(wrapper.value)
@@ -77,13 +76,13 @@ export class Rules extends RulesEngine {
 	}
 
 	isDate() {
-		return this.isDateTime().add(this.isDate.name, (wrapper: Wrapper<PDate>) => {
+		return this.isDateTime().add(this.isDate.name, (wrapper: PRulesWrapper<PDate>) => {
 			wrapper.value.clearTime()
 		})
 	}
 
 	isTime() {
-		this.add(this.isTime.name, (wrapper: Wrapper) => {
+		this.add(this.isTime.name, (wrapper: PRulesWrapper) => {
 			const message = `'${wrapper.label}' contiene un formato de hora no válido`
 			const value = wrapper.value.toString()
 			const parts = value.replace(/[.,]/g, ':').replace('m', '').match(/^([0-2]?[0-9])(:?)([0-5]?[0-9]?)(:?)([0-5]?[0-9]?)([ap]?)\.?m?\.?$/)
@@ -112,14 +111,14 @@ export class Rules extends RulesEngine {
 
 	match(pattern: RegExp) {
 		this.isAlphanumeric()
-		this.add(this.match.name, (wrapper: Wrapper) => {
+		this.add(this.match.name, (wrapper: PRulesWrapper) => {
 			if (!(wrapper.value as string).match(pattern)) return `'${wrapper.label}' no cumple con el formato de texto deseado`
 		})
 		return this
 	}
 
 	isNumber() {
-		this.add(this.isNumber.name, (wrapper: Wrapper) => {
+		this.add(this.isNumber.name, (wrapper: PRulesWrapper) => {
 			const message = `'${wrapper.label}' debe ser un número`
 			const value = Number(wrapper.value)
 			if (isNaN(value) || value == Infinity) return message
@@ -130,7 +129,7 @@ export class Rules extends RulesEngine {
 
 	isInteger() {
 		this.isNumber()
-		this.add(this.isInteger.name, (wrapper: Wrapper) => {
+		this.add(this.isInteger.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value != Math.floor(wrapper.value as number)) return `'${wrapper.label}' debe ser un número entero`
 		})
 		return this
@@ -146,14 +145,14 @@ export class Rules extends RulesEngine {
 
 	onlyNumbers() {
 		this.isAlphanumeric()
-		this.add(this.onlyNumbers.name, (wrapper: Wrapper) => {
+		this.add(this.onlyNumbers.name, (wrapper: PRulesWrapper) => {
 			if (!(wrapper.value as string).match(/^[0-9]+$/)) return `'${wrapper.label}' debe contener sólo números`
 		})
 		return this
 	}
 
 	maxLength(limit: number) {
-		return this.add(this.maxLength.name, (wrapper: Wrapper) => {
+		return this.add(this.maxLength.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value instanceof Array) {
 				return wrapper.value.length > limit ? `'${wrapper.label}' debe contener '${limit} ${limit == 1 ? 'elementos' : 'elementos'}' como máximo` : null
 			} else if (typeof wrapper.value == 'string') {
@@ -165,7 +164,7 @@ export class Rules extends RulesEngine {
 	}
 
 	minLength(limit: number) {
-		return this.add(this.minLength.name, (wrapper: Wrapper) => {
+		return this.add(this.minLength.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value instanceof Array) {
 				return wrapper.value.length < limit ? `'${wrapper.label}' debe contener '${limit} ${limit == 1 ? 'elementos' : 'elementos'}' como mínimo` : null
 			} else if (typeof wrapper.value == 'string') {
@@ -177,7 +176,7 @@ export class Rules extends RulesEngine {
 	}
 
 	hasFixedLength(limit: number) {
-		return this.add(this.hasFixedLength.name, (wrapper: Wrapper) => {
+		return this.add(this.hasFixedLength.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value instanceof Array) {
 				return wrapper.value.length < limit ? `'${wrapper.label}' debe contener sólo '${limit} ${limit == 1 ? 'elementos' : 'elementos'}'` : null
 			} else if (typeof wrapper.value == 'string') {
@@ -189,13 +188,13 @@ export class Rules extends RulesEngine {
 	}
 
 	left(limit: number) {
-		return this.isAlphanumeric().add(this.left.name, (wrapper: Wrapper) => {
+		return this.isAlphanumeric().add(this.left.name, (wrapper: PRulesWrapper) => {
 			(wrapper.value as string) = (wrapper.value as string).substring(0, limit)
 		})
 	}
 
 	isArray() {
-		return this.add(this.isArray.name, (wrapper: Wrapper) => {
+		return this.add(this.isArray.name, (wrapper: PRulesWrapper) => {
 			const message = `'${wrapper.label}' debe ser una lista de elementos`
 			if (typeof wrapper.value == 'string') {
 				try {
@@ -211,11 +210,11 @@ export class Rules extends RulesEngine {
 		})
 	}
 
-	isArrayOfObjects(schema?: (index: number) => Record<string, RulesEngine>, prefix?: (index: number) => string) {
-		return this.isArray().add(this.isArrayOfObjects.name, (wrapper: Wrapper<unknown[]>) => {
+	isArrayOfObjects(schema?: (index: number) => Record<string, PRules>, prefix?: (index: number) => string) {
+		return this.isArray().add(this.isArrayOfObjects.name, (wrapper: PRulesWrapper<unknown[]>) => {
 			const messages: string[] = []
 			for (const [i, value] of wrapper.value.entries()) {
-				const v = isObject({
+				const v = isObject(this, {
 					label: prefix?.(i) ?? `Item ${i}`,
 					value
 				}, schema?.(i))
@@ -232,7 +231,7 @@ export class Rules extends RulesEngine {
 	}
 
 	isIn(...elements: unknown[]) {
-		this.add(this.isIn.name, (wrapper: Wrapper) => {
+		this.add(this.isIn.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value instanceof Array) {
 				for (const v of wrapper.value) {
 					if (!elements.includes(v)) return `'${wrapper.label}' no contiene valores válidos`
@@ -245,57 +244,57 @@ export class Rules extends RulesEngine {
 	}
 
 	isNotIn(...elements: unknown[]) {
-		this.add(this.isNotIn.name, (wrapper: Wrapper) => {
+		this.add(this.isNotIn.name, (wrapper: PRulesWrapper) => {
 			if (elements.includes(wrapper.value)) return `'${wrapper.label}' no tiene un valor válido`
 		})
 		return this
 	}
 
 	hasElements() {
-		return this.isArray().add(this.hasElements.name, (wrapper: Wrapper<unknown[]>) => {
+		return this.isArray().add(this.hasElements.name, (wrapper: PRulesWrapper<unknown[]>) => {
 			if (!wrapper.value.length) return `'${wrapper.label}' debe contenedor al menos un elemento`
 		})
 	}
 
 	gt(limit: number) {
-		return this.isNumber().add(this.gt.name, (wrapper: Wrapper) => {
+		return this.isNumber().add(this.gt.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value as number <= limit) return `'${wrapper.label}' debe ser mayor a '${limit}'`
 		})
 	}
 
 	gte(limit: number) {
-		return this.isNumber().add(this.gte.name, (wrapper: Wrapper) => {
+		return this.isNumber().add(this.gte.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value as number < limit) return `'${wrapper.label}' debe ser mayor o igual a '${limit}'`
 		})
 	}
 
 	lt(limit: number) {
-		return this.isNumber().add(this.lt.name, (wrapper: Wrapper) => {
+		return this.isNumber().add(this.lt.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value as number >= limit) return `'${wrapper.label}' debe ser menor a '${limit}'`
 		})
 	}
 
 	lte(limit: number) {
-		return this.isNumber().add(this.lte.name, (wrapper: Wrapper) => {
+		return this.isNumber().add(this.lte.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value as number > limit) return `'${wrapper.label}' debe ser menor o igual a '${limit}'`
 		})
 	}
 
 	beforeOrSameAsNow() {
-		return this.isDateTime().add(this.beforeOrSameAsNow.name, (wrapper: Wrapper<PDate>) => {
+		return this.isDateTime().add(this.beforeOrSameAsNow.name, (wrapper: PRulesWrapper<PDate>) => {
 			const now = new PDate
 			if (wrapper.value.time > now.time) return `'${wrapper.label}' debe ser anterior o igual a 'ahora'`
 		})
 	}
 
-	isObject(schema?: Record<string, RulesEngine>, prefix?: string) {
-		return this.add(this.isObject.name, (wrapper: Wrapper) => {
-			return isObject(wrapper, schema, prefix)
+	isObject(schema?: Record<string, PRules>) {
+		return this.add(this.isObject.name, (wrapper: PRulesWrapper) => {
+			return isObject(this, wrapper, schema)
 		})
 	}
 
 	isBoolean() {
-		return this.add(this.isBoolean.name, (wrapper: Wrapper) => {
+		return this.add(this.isBoolean.name, (wrapper: PRulesWrapper) => {
 			const message = `'${wrapper.label}' debe ser de tipo booleano`
 			if (typeof wrapper.value == 'string') {
 				const value = wrapper.value.trim().toUpperCase()
@@ -343,7 +342,7 @@ export class Rules extends RulesEngine {
 
 	upper() {
 		this.isAlphanumeric()
-		this.add(this.upper.name, (wrapper: Wrapper) => {
+		this.add(this.upper.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = (wrapper.value as string).toUpperCase()
 		})
 		return this
@@ -351,7 +350,7 @@ export class Rules extends RulesEngine {
 
 	lower() {
 		this.isAlphanumeric()
-		this.add(this.lower.name, (wrapper: Wrapper) => {
+		this.add(this.lower.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = (wrapper.value as string).toLowerCase()
 		})
 		return this
@@ -359,7 +358,7 @@ export class Rules extends RulesEngine {
 
 	decodeURI() {
 		this.isAlphanumeric()
-		this.add(this.decodeURI.name, (wrapper: Wrapper) => {
+		this.add(this.decodeURI.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = decodeURI(wrapper.value as string)
 		})
 		return this
@@ -367,7 +366,7 @@ export class Rules extends RulesEngine {
 
 	round(decimals: number) {
 		this.isNumber()
-		this.add(this.round.name, (wrapper: Wrapper) => {
+		this.add(this.round.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = PUtils.Number.round(wrapper.value as number, decimals)
 		})
 		return this
@@ -376,7 +375,7 @@ export class Rules extends RulesEngine {
 	/* Reemplaza todos los dobles (o más) espacios juntos por uno simple */
 	cleanDoubleSpaces() {
 		this.isAlphanumeric()
-		this.add(this.cleanDoubleSpaces.name, (wrapper: Wrapper) => {
+		this.add(this.cleanDoubleSpaces.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = (wrapper.value as string).replace(/\s{2,}/g, ' ')
 		})
 		return this
@@ -384,7 +383,7 @@ export class Rules extends RulesEngine {
 
 	noSpaces() {
 		this.isAlphanumeric()
-		this.add(this.noSpaces.name, (wrapper: Wrapper) => {
+		this.add(this.noSpaces.name, (wrapper: PRulesWrapper) => {
 			if ((wrapper.value as string).match(/\s/)) return `'${wrapper.label}' no debe contener 'espacios'`
 		})
 		return this
@@ -392,21 +391,21 @@ export class Rules extends RulesEngine {
 
 
 	replace(search: string | RegExp, replace: string | ((substring: string, ...args: any[]) => string)) {
-		return this.isAlphanumeric().add(this.replace.name, (wrapper: Wrapper) => {
+		return this.isAlphanumeric().add(this.replace.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = (wrapper.value as string).replace(search, replace as any)
 		})
 	}
 
 	capitalize() {
 		this.isAlphanumeric()
-		this.add(this.capitalize.name, (wrapper: Wrapper) => {
+		this.add(this.capitalize.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = PUtils.String.capitalize(wrapper.value as string)
 		})
 		return this
 	}
 
 	split(separator: string | RegExp) {
-		return this.isAlphanumeric().add(this.split.name, (wrapper: Wrapper) => {
+		return this.isAlphanumeric().add(this.split.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = (wrapper.value as any).split(separator)
 		})
 	}

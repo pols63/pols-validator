@@ -1,8 +1,8 @@
-import { rules, validate } from '../src/index'
+import { rules } from '../src/index'
 
 const original = {
 	uno: 'hola',
-	dos: 1,
+	dos: 'er',
 	tres: '67',
 	cuatro: {
 		aaa: '2024-10-28 23:56:00',
@@ -10,13 +10,15 @@ const original = {
 	}
 }
 
-const resultados = validate(original, rules({ label: 'Mi número' }).isObject({
-	uno: rules({ label: 'Uno', required: true }),
+const otro = 56
+
+const resultados = rules({ label: 'Body' }).isObject({
+	uno: rules({ label: 'Uno', required: true }).isNatural(),
 	dos: rules().isBoolean(),
 	tres: rules({ required: true }).isNaturalNoZero(),
 	cuatro: rules({ label: 'Cuatro', default: {} }).isObject({
 		aaa: rules().isDateTime()
 	})
-}, `Mi número >`))
+}).validate(original)
 
 console.log(original, resultados)
