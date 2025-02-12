@@ -1,6 +1,7 @@
 import { PUtils } from "pols-utils"
 import { PRulesEngine, PRulesWrapper } from "./rulesEngine"
 import { PDate } from "pols-date"
+import { sanitize } from 'isomorphic-dompurify'
 
 const isObject = (context: PRules, wrapper: PRulesWrapper, schema?: Record<string, PRules>) => {
 	const message = `'${wrapper.label}' debe ser un objeto`
@@ -412,6 +413,12 @@ export class PRules extends PRulesEngine {
 	ceil() {
 		return this.isNumber().add(this.ceil.name, (wrapper: PRulesWrapper<number>) => {
 			wrapper.value = Math.ceil(wrapper.value)
+		})
+	}
+
+	sanitize(...allowedTags: string[]) {
+		return this.isAlphanumeric().add(this.sanitize.name, (wrapper: PRulesWrapper) => {
+			wrapper.value = sanitize((wrapper.value as string).trim(), { ALLOWED_TAGS: allowedTags })
 		})
 	}
 }

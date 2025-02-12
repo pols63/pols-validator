@@ -22,6 +22,7 @@
 		"typescript-eslint": "^8.11.0"
 	},
 	"dependencies": {
+		"isomorphic-dompurify": "^2.21.0",
 		"pols-date": "^1.0.1",
 		"pols-utils": "^4.1.0"
 	}
