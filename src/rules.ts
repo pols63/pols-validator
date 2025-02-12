@@ -1,5 +1,6 @@
-import { PDate, PUtils } from "pols-utils"
+import { PUtils } from "pols-utils"
 import { PRulesEngine, PRulesWrapper } from "./rulesEngine"
+import { PDate } from "pols-date"
 
 const isObject = (context: PRules, wrapper: PRulesWrapper, schema?: Record<string, PRules>) => {
 	const message = `'${wrapper.label}' debe ser un objeto`
