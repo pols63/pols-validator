@@ -51,7 +51,7 @@ export class PRulesEngine {
 		return this
 	}
 
-	validate = <T>(target: unknown): PRulesResponse<T> => {
+	validate<T>(target: unknown): PRulesResponse<T> {
 		const errorMessages: string[] = []
 
 		if (typeof target == 'string') target = target.trim()
