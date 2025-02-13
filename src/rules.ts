@@ -404,6 +404,12 @@ export class PRules extends PRulesEngine {
 		})
 	}
 
+	join(separator: string) {
+		return this.isArray().add(this.split.name, (wrapper: PRulesWrapper<unknown[]>) => {
+			wrapper.value = wrapper.value.join(separator) as any
+		})
+	}
+
 	floor() {
 		return this.isNumber().add(this.floor.name, (wrapper: PRulesWrapper<number>) => {
 			wrapper.value = Math.floor(wrapper.value)
