@@ -405,7 +405,7 @@ export class PRules extends PRulesEngine {
 	}
 
 	join(separator: string) {
-		return this.isArray().add(this.split.name, (wrapper: PRulesWrapper<unknown[]>) => {
+		return this.isArray().add(this.join.name, (wrapper: PRulesWrapper<unknown[]>) => {
 			wrapper.value = wrapper.value.join(separator) as any
 		})
 	}
