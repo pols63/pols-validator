@@ -96,12 +96,12 @@ export class PRules extends PRulesEngine {
 			if (minutes < 60 && seconds < 60) {
 				/* Si middle es diferente de vacío, es porque el usuario tiene la intención de especificar una hora del día, caso contrario, está indicando una duración. */
 				if (middle) {
-					if (hours > 0 && hours <= 12) {
+					if (hours >= 1 && hours <= 12) {
 						if (middle === 'p') hours += 12
 						wrapper.value = `${PUtils.String.padLeft(hours, 2)}:${PUtils.String.padLeft(minutes, 2)}:${PUtils.String.padLeft(seconds, 2)}`
 						return
 					}
-				} else {
+				} else if (hours >= 0 && hours <= 23) {
 					wrapper.value = `${PUtils.String.padLeft(hours, 2)}:${PUtils.String.padLeft(minutes, 2)}:${PUtils.String.padLeft(seconds, 2)}`
 					return
 				}
