@@ -1,15 +1,16 @@
+import { PDate } from 'pols-date'
 import { rules } from '../src/index'
 
 const original = {
-	uno: 'hola',
-	dos: 'er',
+	uno: new PDate,
+	dos: new PDate,
 }
 
 const otro = 56
 
 const resultados = rules({ label: 'Body' }).isObject({
-	uno: rules({ label: 'Uno', required: true }).isNatural(),
-	dos: rules().isBoolean(),
+	uno: rules().isDate(),
+	dos: rules().isDate(),
 	// tres: rules({ required: true }).isNaturalNoZero(),
 	// cuatro: rules({ label: 'Cuatro', default: {} }).isObject({
 	// 	aaa: rules().isDateTime()
