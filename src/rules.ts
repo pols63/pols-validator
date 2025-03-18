@@ -79,7 +79,7 @@ export class PRules extends PRulesEngine {
 
 	isDate() {
 		return this.isDateTime().add(this.isDate.name, (wrapper: PRulesWrapper<PDate>) => {
-			wrapper.value.clearTime()
+			wrapper.value.clearClockTime()
 		})
 	}
 
@@ -277,7 +277,7 @@ export class PRules extends PRulesEngine {
 	beforeOrSameAsNow() {
 		return this.isDateTime().add(this.beforeOrSameAsNow.name, (wrapper: PRulesWrapper<PDate>) => {
 			const now = new PDate
-			if (wrapper.value.time > now.time) return `'${wrapper.label}' debe ser anterior o igual a 'ahora'`
+			if (wrapper.value.timestamp > now.timestamp) return `'${wrapper.label}' debe ser anterior o igual a 'ahora'`
 		})
 	}
 
