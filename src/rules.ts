@@ -66,13 +66,9 @@ export class PRules extends PRulesEngine {
 	isDateTime() {
 		this.add(this.isDateTime.name, (wrapper: PRulesWrapper) => {
 			const message = `'${wrapper.label}' tiene un formato de fecha y hora no válido`
-			if (typeof wrapper.value == 'string' || typeof wrapper.value == 'number' || wrapper.value instanceof Date || wrapper.value instanceof PDate) {
-				const newDate = new PDate(wrapper.value)
-				if (newDate.isInvalidDate) return message
-				wrapper.value = newDate
-			} else {
-				return message
-			}
+			const newDate = new PDate(wrapper.value)
+			if (newDate.isInvalidDate) return message
+			wrapper.value = newDate
 		})
 		return this
 	}
