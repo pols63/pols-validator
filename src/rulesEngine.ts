@@ -1,5 +1,3 @@
-import { PUtils } from "pols-utils"
-
 export type PRulesParams = {
 	label?: string
 	separator?: string
@@ -51,7 +49,7 @@ export class PRulesEngine {
 		return this
 	}
 
-	validate<T>(target: unknown): PRulesResponse<T> {
+	validate<T>(target: unknown, safe = true): PRulesResponse<T> {
 		const errorMessages: string[] = []
 
 		if (typeof target == 'string') target = target.trim()
@@ -76,7 +74,7 @@ export class PRulesEngine {
 		}
 
 		const wrapper: PRulesWrapper<T> = {
-			value: PUtils.clone(target) as T,
+			value: safe ? JSON.parse(JSON.stringify(target)) : target,
 			label
 		}
 		for (const validationFunction of this.collectionFunctions) {

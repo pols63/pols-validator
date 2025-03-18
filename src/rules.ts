@@ -1,7 +1,7 @@
-import { PUtils } from "pols-utils"
 import { PRulesEngine, PRulesWrapper } from "./rulesEngine"
 import { PDate } from "pols-date"
 import { sanitize } from 'isomorphic-dompurify'
+import { PUtilsNumber, PUtilsString } from "pols-utils"
 
 const isObject = (context: PRules, wrapper: PRulesWrapper, schema?: Record<string, PRules>) => {
 	const message = `'${wrapper.label}' debe ser un objeto`
@@ -12,11 +12,11 @@ const isObject = (context: PRules, wrapper: PRulesWrapper, schema?: Record<strin
 		} catch {
 			return message
 		}
-		if (PUtils.getType(wrapper.value) != 'Object') return message
+		if (wrapper.value == null || typeof wrapper.value != 'object') return message
+	} else if (wrapper.value != null) {
+		if (typeof wrapper.value != 'object') return message
 	} else {
-		if (PUtils.getType(wrapper.value) != 'Object') {
-			return message
-		}
+		return message
 	}
 
 	/* Realiza la validación de cada propiedad */
@@ -29,7 +29,7 @@ const isObject = (context: PRules, wrapper: PRulesWrapper, schema?: Record<strin
 
 		newWrapperValue[key] = wrapper.value[key]
 
-		const result2 = rulesInside.validate(newWrapperValue[key])
+		const result2 = rulesInside.validate(newWrapperValue[key], false)
 		if (result2.error == true) {
 			errorMessages.push(...result2.messages)
 		} else {
@@ -94,11 +94,11 @@ export class PRules extends PRulesEngine {
 				if (middle) {
 					if (hours >= 1 && hours <= 12) {
 						if (middle === 'p') hours += 12
-						wrapper.value = `${PUtils.String.padLeft(hours, 2)}:${PUtils.String.padLeft(minutes, 2)}:${PUtils.String.padLeft(seconds, 2)}`
+						wrapper.value = `${PUtilsString.padLeft(hours, 2)}:${PUtilsString.padLeft(minutes, 2)}:${PUtilsString.padLeft(seconds, 2)}`
 						return
 					}
 				} else if (hours >= 0 && hours <= 23) {
-					wrapper.value = `${PUtils.String.padLeft(hours, 2)}:${PUtils.String.padLeft(minutes, 2)}:${PUtils.String.padLeft(seconds, 2)}`
+					wrapper.value = `${PUtilsString.padLeft(hours, 2)}:${PUtilsString.padLeft(minutes, 2)}:${PUtilsString.padLeft(seconds, 2)}`
 					return
 				}
 			}
@@ -211,7 +211,7 @@ export class PRules extends PRulesEngine {
 			for (const [i, element] of wrapper.value.entries()) {
 				const rules = rulesGenerator(i)
 				rules.label = `${this.label ? `${this.label}${rules.label ? this.separator : ''}` : ''}${rules.label ?? ''}`
-				const result = rules.validate(element)
+				const result = rules.validate(element, false)
 				if (result.error == true) {
 					messages.push(...result.messages)
 				} else {
@@ -357,7 +357,7 @@ export class PRules extends PRulesEngine {
 	round(decimals: number) {
 		this.isNumber()
 		this.add(this.round.name, (wrapper: PRulesWrapper) => {
-			wrapper.value = PUtils.Number.round(wrapper.value as number, decimals)
+			wrapper.value = PUtilsNumber.round(wrapper.value as number, decimals)
 		})
 		return this
 	}
@@ -389,7 +389,7 @@ export class PRules extends PRulesEngine {
 	capitalize() {
 		this.isAlphanumeric()
 		this.add(this.capitalize.name, (wrapper: PRulesWrapper) => {
-			wrapper.value = PUtils.String.capitalize(wrapper.value as string)
+			wrapper.value = PUtilsString.capitalize(wrapper.value as string)
 		})
 		return this
 	}
