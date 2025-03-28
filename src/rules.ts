@@ -94,11 +94,11 @@ export class PRules extends PRulesEngine {
 				if (middle) {
 					if (hours >= 1 && hours <= 12) {
 						if (middle === 'p') hours += 12
-						wrapper.value = `${PUtilsString.padLeft(hours, 2)}:${PUtilsString.padLeft(minutes, 2)}:${PUtilsString.padLeft(seconds, 2)}`
+						wrapper.value = `${PUtilsString.padStart(hours, 2)}:${PUtilsString.padStart(minutes, 2)}:${PUtilsString.padStart(seconds, 2)}`
 						return
 					}
 				} else if (hours >= 0 && hours <= 23) {
-					wrapper.value = `${PUtilsString.padLeft(hours, 2)}:${PUtilsString.padLeft(minutes, 2)}:${PUtilsString.padLeft(seconds, 2)}`
+					wrapper.value = `${PUtilsString.padStart(hours, 2)}:${PUtilsString.padStart(minutes, 2)}:${PUtilsString.padStart(seconds, 2)}`
 					return
 				}
 			}
