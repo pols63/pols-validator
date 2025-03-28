@@ -54,7 +54,9 @@ export class PRulesEngine {
 
 		if (typeof target == 'string') target = target.trim()
 
+		const defaultIsEmpty = this.default == null || (typeof this.default == 'string' && !this.default)
 		const isEmpty = target == null || (typeof target == 'string' && !target)
+
 		const label = this.label
 
 		if (this.required && isEmpty) {
@@ -66,10 +68,14 @@ export class PRulesEngine {
 		}
 
 		if (isEmpty) {
-			return {
-				error: false,
-				success: true,
-				result: this.default as T
+			if (!defaultIsEmpty) {
+				target = this.default
+			} else {
+				return {
+					error: false,
+					success: true,
+					result: this.default as T
+				}
 			}
 		}
 

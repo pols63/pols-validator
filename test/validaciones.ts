@@ -3,14 +3,14 @@ import { rules } from '../src/index'
 
 const original = {
 	uno: new PDate,
-	dos: new PDate,
+	dos: 'qwe',
 }
 
 const otro = 56
 
-const resultados = rules({ label: 'Body' }).isObject({
+const resultados = rules().isObject({
 	uno: rules().isDate(),
-	dos: rules().isDate(),
+	dos: rules({required: true}).isDate(),
 	// tres: rules({ required: true }).isNaturalNoZero(),
 	// cuatro: rules({ label: 'Cuatro', default: {} }).isObject({
 	// 	aaa: rules().isDateTime()
@@ -18,7 +18,7 @@ const resultados = rules({ label: 'Body' }).isObject({
 	// cinco: rules().isArray(i => rules({ label: `Elem ${i + 1}` }).isObject({
 	// 	ccc: rules().isNumber()
 	// }))
-}).validate<typeof original>(original)
+}).validate<typeof original>('')
 
 console.log(original, resultados)
 
