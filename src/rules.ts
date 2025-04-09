@@ -206,6 +206,8 @@ export class PRules extends PRulesEngine {
 				if (!(wrapper.value instanceof Array)) return message
 			}
 
+			if (!rulesGenerator) return
+
 			/* Si se ha definido un generador de reglas, se itera cada elemento */
 			const messages: string[] = []
 			for (const [i, element] of wrapper.value.entries()) {
