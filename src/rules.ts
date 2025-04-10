@@ -248,25 +248,25 @@ export class PRules extends PRulesEngine {
 		})
 	}
 
-	gt(limit: number) {
+	isGt(limit: number) {
 		return this.isNumber().add(this.gt.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value as number <= limit) return `'${wrapper.label}' debe ser mayor a '${limit}'`
 		})
 	}
 
-	gte(limit: number) {
+	isGte(limit: number) {
 		return this.isNumber().add(this.gte.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value as number < limit) return `'${wrapper.label}' debe ser mayor o igual a '${limit}'`
 		})
 	}
 
-	lt(limit: number) {
+	isLt(limit: number) {
 		return this.isNumber().add(this.lt.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value as number >= limit) return `'${wrapper.label}' debe ser menor a '${limit}'`
 		})
 	}
 
-	lte(limit: number) {
+	isLte(limit: number) {
 		return this.isNumber().add(this.lte.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value as number > limit) return `'${wrapper.label}' debe ser menor o igual a '${limit}'`
 		})
