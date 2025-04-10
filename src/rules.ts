@@ -134,11 +134,11 @@ export class PRules extends PRulesEngine {
 	}
 
 	isNatural() {
-		return this.isInteger().gte(0)
+		return this.isInteger().isGte(0)
 	}
 
 	isNaturalNoZero() {
-		return this.isInteger().gt(0)
+		return this.isInteger().isGt(0)
 	}
 
 	onlyNumbers() {
@@ -249,25 +249,25 @@ export class PRules extends PRulesEngine {
 	}
 
 	isGt(limit: number) {
-		return this.isNumber().add(this.gt.name, (wrapper: PRulesWrapper) => {
+		return this.isNumber().add(this.isGt.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value as number <= limit) return `'${wrapper.label}' debe ser mayor a '${limit}'`
 		})
 	}
 
 	isGte(limit: number) {
-		return this.isNumber().add(this.gte.name, (wrapper: PRulesWrapper) => {
+		return this.isNumber().add(this.isGte.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value as number < limit) return `'${wrapper.label}' debe ser mayor o igual a '${limit}'`
 		})
 	}
 
 	isLt(limit: number) {
-		return this.isNumber().add(this.lt.name, (wrapper: PRulesWrapper) => {
+		return this.isNumber().add(this.isLt.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value as number >= limit) return `'${wrapper.label}' debe ser menor a '${limit}'`
 		})
 	}
 
 	isLte(limit: number) {
-		return this.isNumber().add(this.lte.name, (wrapper: PRulesWrapper) => {
+		return this.isNumber().add(this.isLte.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value as number > limit) return `'${wrapper.label}' debe ser menor o igual a '${limit}'`
 		})
 	}
