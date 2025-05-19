@@ -27,9 +27,7 @@ const isObject = (context: PRules, wrapper: PRulesWrapper, schema?: Record<strin
 		const labelIndise = rulesInside.label ?? key
 		rulesInside.label = `${context.label ? `${context.label}${context.separator}` : ''}${labelIndise}`
 
-		newWrapperValue[key] = wrapper.value[key]
-
-		const result2 = rulesInside.validate(newWrapperValue[key], false)
+		const result2 = rulesInside.validate(wrapper.value[key], false)
 		if (result2.error == true) {
 			errorMessages.push(...result2.messages)
 		} else {
