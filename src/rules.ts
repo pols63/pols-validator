@@ -31,7 +31,7 @@ const isObject = (context: PRules, wrapper: PRulesWrapper, schema?: Record<strin
 		if (result2.error == true) {
 			errorMessages.push(...result2.messages)
 		} else {
-			if (result2 !== undefined) newWrapperValue[key] = result2.result
+			if (result2.result !== undefined) newWrapperValue[key] = result2.result
 		}
 	}
 	if (errorMessages.length) {
