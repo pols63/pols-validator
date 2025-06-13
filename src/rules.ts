@@ -240,8 +240,8 @@ export class PRules extends PRulesEngine {
 		})
 	}
 
-	hasElements() {
-		return this.isArray().add(this.hasElements.name, (wrapper: PRulesWrapper<unknown[]>) => {
+	hasElements(rulesGenerator?: (index: number) => PRules) {
+		return this.isArray(rulesGenerator).add(this.hasElements.name, (wrapper: PRulesWrapper<unknown[]>) => {
 			if (!wrapper.value.length) return `'${wrapper.label}' debe contenedor al menos un elemento`
 		})
 	}
