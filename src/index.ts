@@ -1,7 +1,13 @@
 import { PRules } from "./rules"
 import { PRulesParams } from "./rulesEngine"
 
-export const rules = (params?: PRulesParams) => new PRules(params)
+export type PRulesCreator<T> = {
+	(label: string, required?: boolean, _default?: unknown): T
+	(required: boolean, _default?: unknown): T
+	(params: PRulesParams): T
+}
+
+export const rules: PRulesCreator<PRules> = (...args: any[]) => new PRules(...args)
 
 export { PRules, PRulesParams }
 

@@ -34,11 +34,23 @@ export class PRulesEngine {
 	private collectionFunctions: PRulesFunction[] = []
 	private collectionNames: string[] = []
 
-	constructor(params?: PRulesParams) {
-		this.label = params?.label
-		this.separator = params?.separator ?? ' > '
-		this.required = params && 'required' in params ? params?.required : false
-		this.default = params && 'default' in params ? params?.default : null
+	constructor(label?: string, required?: boolean, _default?: unknown)
+	constructor(required?: boolean, _default?: unknown)
+	constructor(params?: PRulesParams)
+	constructor(a1?: any, a2?: any, a3?: any) {
+		if (typeof a1 == 'string') {
+			this.label = a1
+			this.required = a2 ?? false
+			this.default = a3 ?? null
+		} else if (typeof a1 == 'boolean') {
+			this.required = a1
+			this.default = a2 ?? null
+		} else {
+			this.label = a1?.label
+			this.separator = a1?.separator ?? ' > '
+			this.required = a1 && 'required' in a1 ? a1?.required : false
+			this.default = a1 && 'default' in a1 ? a1?.default : null
+		}
 	}
 
 	protected add(name: string, validationFunction: PRulesFunction) {
