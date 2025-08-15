@@ -40,9 +40,11 @@ export class PRulesEngine {
 	constructor(a1?: any, a2?: any, a3?: any) {
 		if (typeof a1 == 'string') {
 			this.label = a1
+			this.separator = ' > '
 			this.required = a2 ?? false
 			this.default = a3 ?? null
 		} else if (typeof a1 == 'boolean') {
+			this.separator = ' > '
 			this.required = a1
 			this.default = a2 ?? null
 		} else {
