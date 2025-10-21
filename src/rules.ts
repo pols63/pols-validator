@@ -428,7 +428,7 @@ export class PRules extends PRulesEngine {
 			const config: Config = {}
 			if (params) {
 				if (params.allowedTags) config.ALLOWED_TAGS = params.allowedTags
-				if (params.forbiddenTags) config.FORBID_TAGS = params.allowedTags
+				if (params.forbiddenTags) config.FORBID_TAGS = params.forbiddenTags
 			} else {
 				config.ALLOWED_TAGS = []
 			}
