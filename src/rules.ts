@@ -1,6 +1,6 @@
 import { PRulesEngine, PRulesWrapper } from "./rulesEngine"
 import { PDate } from "pols-date"
-import { sanitize } from 'isomorphic-dompurify'
+import { Config, sanitize } from 'isomorphic-dompurify'
 import { PUtilsNumber, PUtilsString } from "pols-utils"
 
 export type PSanitizeParams = {
@@ -423,15 +423,17 @@ export class PRules extends PRulesEngine {
 		})
 	}
 
-	sanitize({ allowedTags, forbiddenTags }: PSanitizeParams = {
-		allowedTags: [],
-		forbiddenTags: []
-	}) {
+	sanitize(params?: PSanitizeParams) {
 		return this.isAlphanumeric().add(this.sanitize.name, (wrapper: PRulesWrapper) => {
-			wrapper.value = sanitize((wrapper.value as string).trim(), {
-				ALLOWED_TAGS: allowedTags,
-				FORBID_TAGS: forbiddenTags
-			})
+			const config: Config = {}
+			if (params) {
+				if (params.allowedTags) config.ALLOWED_TAGS = params.allowedTags
+				if (params.forbiddenTags) config.FORBID_TAGS = params.allowedTags
+			} else {
+				config.ALLOWED_TAGS = []
+			}
+
+			wrapper.value = sanitize((wrapper.value as string).trim(), config)
 		})
 	}
 }
