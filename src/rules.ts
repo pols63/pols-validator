@@ -423,7 +423,10 @@ export class PRules extends PRulesEngine {
 		})
 	}
 
-	sanitize({ allowedTags, forbiddenTags }: PSanitizeParams = {}) {
+	sanitize({ allowedTags, forbiddenTags }: PSanitizeParams = {
+		allowedTags: [],
+		forbiddenTags: []
+	}) {
 		return this.isAlphanumeric().add(this.sanitize.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = sanitize((wrapper.value as string).trim(), {
 				ALLOWED_TAGS: allowedTags,
