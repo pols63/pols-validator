@@ -3,6 +3,11 @@ import { PDate } from "pols-date"
 import { sanitize } from 'isomorphic-dompurify'
 import { PUtilsNumber, PUtilsString } from "pols-utils"
 
+export type PSanitizeParams = {
+	allowedTags?: string[]
+	forbiddenTags?: string[]
+}
+
 const isObject = (context: PRules, wrapper: PRulesWrapper, schema?: Record<string, PRules>) => {
 	const message = `'${wrapper.label}' debe ser un objeto`
 
@@ -418,10 +423,7 @@ export class PRules extends PRulesEngine {
 		})
 	}
 
-	sanitize({ allowedTags, forbiddenTags }: {
-		allowedTags?: string[]
-		forbiddenTags?: string[]
-	} = {}) {
+	sanitize({ allowedTags, forbiddenTags }: PSanitizeParams = {}) {
 		return this.isAlphanumeric().add(this.sanitize.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = sanitize((wrapper.value as string).trim(), {
 				ALLOWED_TAGS: allowedTags,

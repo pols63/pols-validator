@@ -1,4 +1,4 @@
-import { PRules } from "./rules"
+import { PRules, PSanitizeParams } from "./rules"
 import { PRulesParams } from "./rulesEngine"
 
 export type PRulesCreator<T> = {
@@ -9,6 +9,6 @@ export type PRulesCreator<T> = {
 
 export const rules: PRulesCreator<PRules> = (...args: any[]) => new PRules(...args)
 
-export { PRules, PRulesParams }
+export { PRules, PRulesParams, PSanitizeParams }
 
 export { PRulesResponse, PRulesWrapper, PRulesFunction } from './rulesEngine'
