@@ -25,24 +25,26 @@ const isObject = (context: PRules, wrapper: PRulesWrapper, schema?: Record<strin
 	}
 
 	/* Realiza la validación de cada propiedad */
-	const newWrapperValue: Record<string, unknown> = {}
-	const errorMessages: string[] = []
-	for (const key in schema) {
-		const rulesInside = schema[key]
-		const labelIndise = rulesInside.label ?? key
-		rulesInside.label = `${context.label ? `${context.label}${context.separator}` : ''}${labelIndise}`
+	if (schema) {
+		const newWrapperValue: Record<string, unknown> = {}
+		const errorMessages: string[] = []
+		for (const key in schema) {
+			const rulesInside = schema[key]
+			const labelIndise = rulesInside.label ?? key
+			rulesInside.label = `${context.label ? `${context.label}${context.separator}` : ''}${labelIndise}`
 
-		const result2 = rulesInside.validate(wrapper.value[key], false)
-		if (result2.error == true) {
-			errorMessages.push(...result2.messages)
-		} else {
-			if (result2.result !== undefined) newWrapperValue[key] = result2.result
+			const result2 = rulesInside.validate(wrapper.value[key], false)
+			if (result2.error == true) {
+				errorMessages.push(...result2.messages)
+			} else {
+				if (result2.result !== undefined) newWrapperValue[key] = result2.result
+			}
 		}
-	}
-	if (errorMessages.length) {
-		return errorMessages
-	} else {
-		wrapper.value = newWrapperValue
+		if (errorMessages.length) {
+			return errorMessages
+		} else {
+			wrapper.value = newWrapperValue
+		}
 	}
 }
 
