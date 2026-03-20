@@ -62,8 +62,15 @@ export class PRules extends PRulesEngine {
 
 	isEmailAddress() {
 		this.isAlphanumeric()
-		this.add(this.isEmailAddress.name, (wrapper: PRulesWrapper) => {
-			if (!(wrapper.value as string).match(/^[^\sñáéíóúäëïöü@]+@[^\sñáéíóúäëïöü@]+\.[^\sñáéíóúäëïöü@]{2,}$/i)) return `'${wrapper.label}' debe ser una dirección de correo`
+		this.add(this.isEmailAddress.name, (wrapper: PRulesWrapper<string>) => {
+			const message = `'${wrapper.label}' debe ser una dirección de correo válida`
+			if (wrapper.value.match(/^[^\sñáéíóúäëïöü@]+@[^\sñáéíóúäëïöü@]+\.[^\sñáéíóúäëïöü@]{2,}$/i)) {
+				if (wrapper.value.match(/[.]{2}|[+]|,/)) {
+					return message
+				}
+			} else {
+				return message
+			}
 		})
 		return this
 	}

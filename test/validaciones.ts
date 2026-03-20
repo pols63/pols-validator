@@ -2,11 +2,14 @@ import { PDate } from 'pols-date'
 import { rules } from '../src/index'
 
 const objeto = {
-	Detalles: `[{ "Prop": 1 }]`
+	Correo: 'asd@asd.com89',
+	// Otro: {}
 }
 
-const v = rules({default: {}}).isObject({
-	Detalles: rules().hasElements(i => rules().isObject())
+const v = rules().isObject({
+	// Detalles: rules().hasElements(i => rules().isObject()),
+	// Otro: rules(true).isObject(),
+	Correo: rules().isEmailAddress()
 }).validate(objeto)
 
-console.log(v)
+console.log((v as any)['messages'])
