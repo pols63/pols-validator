@@ -12,16 +12,18 @@ export type PRulesFunction = (wrapper: PRulesWrapper, ...args: unknown[]) => str
 export type PRulesWrapper<T = unknown> = {
 	value: T
 	label: string
+	interim?: T
 }
 
 export type PRulesResponse<T> = {
 	error: false
 	success: true
-	result: T
+	sanitized: T
 } | {
 	error: true
 	success: false
 	messages: string[]
+	interim: T
 }
 
 export class PRulesEngine {
@@ -77,6 +79,7 @@ export class PRulesEngine {
 			return {
 				error: true,
 				success: false,
+				interim: undefined,
 				messages: [`'${label}' es requerido`]
 			}
 		}
@@ -85,10 +88,16 @@ export class PRulesEngine {
 			if (!defaultIsEmpty) {
 				target = this.default
 			} else {
+				let newValue: unknown
+				if (target == null) {
+					newValue = target
+				} else if (typeof target == 'string') {
+					newValue = null
+				}
 				return {
 					error: false,
 					success: true,
-					result: this.default as T
+					sanitized: newValue as T
 				}
 			}
 		}
@@ -112,13 +121,14 @@ export class PRulesEngine {
 			return {
 				error: true,
 				success: false,
+				interim: wrapper.interim,
 				messages: errorMessages
 			}
 		} else {
 			return {
 				error: false,
 				success: true,
-				result: wrapper.value
+				sanitized: wrapper.value
 			}
 		}
 	}

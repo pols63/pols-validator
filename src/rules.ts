@@ -8,46 +8,6 @@ export type PSanitizeParams = {
 	forbiddenTags?: string[]
 }
 
-const isObject = (context: PRules, wrapper: PRulesWrapper, schema?: Record<string, PRules>) => {
-	const message = `'${wrapper.label}' debe ser un objeto`
-
-	if (typeof wrapper.value == 'string') {
-		try {
-			wrapper.value = JSON.parse(wrapper.value)
-		} catch {
-			return message
-		}
-		if (wrapper.value == null || typeof wrapper.value != 'object') return message
-	} else if (wrapper.value != null) {
-		if (typeof wrapper.value != 'object') return message
-	} else {
-		return message
-	}
-
-	/* Realiza la validación de cada propiedad */
-	if (schema) {
-		const newWrapperValue: Record<string, unknown> = {}
-		const errorMessages: string[] = []
-		for (const key in schema) {
-			const rulesInside = schema[key]
-			const labelIndise = rulesInside.label ?? key
-			rulesInside.label = `${context.label ? `${context.label}${context.separator}` : ''}${labelIndise}`
-
-			const result2 = rulesInside.validate(wrapper.value[key], false)
-			if (result2.error == true) {
-				errorMessages.push(...result2.messages)
-			} else {
-				if (result2.result !== undefined) newWrapperValue[key] = result2.result
-			}
-		}
-		if (errorMessages.length) {
-			return errorMessages
-		} else {
-			wrapper.value = newWrapperValue
-		}
-	}
-}
-
 export class PRules extends PRulesEngine {
 	isAlphanumeric() {
 		this.add(this.isAlphanumeric.name, (wrapper: PRulesWrapper) => {
@@ -227,11 +187,13 @@ export class PRules extends PRulesEngine {
 				rules.label = `${this.label ? `${this.label}${rules.label ? this.separator : ''}` : ''}${rules.label ?? ''}`
 				const result = rules.validate(element, false)
 				if (result.error == true) {
+					wrapper.value[i] = result.interim
 					messages.push(...result.messages)
 				} else {
-					wrapper.value[i] = result.result
+					wrapper.value[i] = result.sanitized
 				}
 			}
+			wrapper.interim = wrapper.value
 			if (messages.length) return messages
 		})
 	}
@@ -293,7 +255,45 @@ export class PRules extends PRulesEngine {
 
 	isObject(schema?: Record<string, PRules>) {
 		return this.add(this.isObject.name, (wrapper: PRulesWrapper) => {
-			return isObject(this, wrapper, schema)
+			const message = `'${wrapper.label}' debe ser un objeto`
+
+			if (typeof wrapper.value == 'string') {
+				try {
+					wrapper.value = JSON.parse(wrapper.value)
+				} catch {
+					return message
+				}
+				if (wrapper.value == null || typeof wrapper.value != 'object') return message
+			} else if (wrapper.value != null) {
+				if (typeof wrapper.value != 'object') return message
+			} else {
+				return message
+			}
+
+			/* Realiza la validación de cada propiedad */
+			if (schema) {
+				const interim: Record<string, unknown> = {}
+				const errorMessages: string[] = []
+				for (const key in schema) {
+					const rulesInside = schema[key]
+					const labelIndise = rulesInside.label ?? key
+					rulesInside.label = `${this.label ? `${this.label}${this.separator}` : ''}${labelIndise}`
+
+					const propertyResult = rulesInside.validate(wrapper.value[key], false)
+					if (propertyResult.error == true) {
+						if (propertyResult.interim !== undefined) interim[key] = propertyResult.interim
+						errorMessages.push(...propertyResult.messages)
+					} else {
+						if (propertyResult.sanitized !== undefined) interim[key] = propertyResult.sanitized
+					}
+				}
+				if (errorMessages.length) {
+					wrapper.interim = interim
+					return errorMessages
+				} else {
+					wrapper.value = interim
+				}
+			}
 		})
 	}
 
