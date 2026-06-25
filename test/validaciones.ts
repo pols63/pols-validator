@@ -71,4 +71,22 @@ const failedRun2 = itemSchema.validate({ nombre: true }) as any
 console.log("Mensaje de error (segunda falla):", failedRun2.messages)
 console.assert(failedRun2.messages[0] === "'Usuario > Nombre' debe ser una cadena de texto", `ERROR: La etiqueta acumuló prefijos: ${failedRun2.messages[0]}`)
 
+console.log("\n--- Pruebas de isNumeric ---")
+const numericGood = rules().isNumeric().validate("1234567890") as any
+console.log("1234567890 -> error:", numericGood.error)
+console.assert(numericGood.error === false, "ERROR: 1234567890 debería ser numérico válido")
+
+const numericBad = rules().isNumeric().validate("123a456") as any
+console.log("123a456 -> error:", numericBad.error)
+console.assert(numericBad.error === true, "ERROR: 123a456 debería ser numérico inválido")
+
+console.log("\n--- Pruebas de isAlphanumeric ---")
+const alphaGood = rules().isAlphanumeric().validate("User123ñáéíóúüÑÁÉÍÓÚÜ") as any
+console.log("User123ñáéíóúüÑÁÉÍÓÚÜ -> error:", alphaGood.error)
+console.assert(alphaGood.error === false, "ERROR: Caracteres españoles con números deberían ser alfanuméricos válidos")
+
+const alphaBad = rules().isAlphanumeric().validate("User 123!") as any
+console.log("User 123! -> error:", alphaBad.error)
+console.assert(alphaBad.error === true, "ERROR: Espacios y símbolos deberían ser alfanuméricos inválidos")
+
 console.log("\n¡Pruebas completadas!")

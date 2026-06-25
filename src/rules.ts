@@ -10,19 +10,25 @@ export type PSanitizeParams = {
 
 export class PRules extends PRulesEngine {
 	isString() {
-		this.add(this.isString.name, (wrapper: PRulesWrapper) => {
+		return this.add(this.isString.name, (wrapper: PRulesWrapper) => {
 			if (typeof wrapper.value == 'number') {
 				wrapper.value = wrapper.value.toString()
 			} else if (typeof wrapper.value != 'string') {
 				return `'${wrapper.label}' debe ser una cadena de texto`
 			}
 		})
-		return this
+	}
+
+	isAlphanumeric() {
+		return this.isString().add(this.isAlphanumeric.name, (wrapper: PRulesWrapper) => {
+			if (!(wrapper.value as string).match(/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚüÜ]+$/)) {
+				return `'${wrapper.label}' debe contener sólo letras y números`
+			}
+		})
 	}
 
 	isEmailAddress() {
-		this.isString()
-		this.add(this.isEmailAddress.name, (wrapper: PRulesWrapper<string>) => {
+		return this.isString().add(this.isEmailAddress.name, (wrapper: PRulesWrapper<string>) => {
 			const message = `'${wrapper.label}' debe ser una dirección de correo válida`
 			if (wrapper.value.match(/^[^\sñáéíóúäëïöü@]+@[^\sñáéíóúäëïöü@]+\.[^\sñáéíóúäëïöü@]{2,}$/i)) {
 				if (wrapper.value.match(/[.]{2}|,/)) {
@@ -32,17 +38,15 @@ export class PRules extends PRulesEngine {
 				return message
 			}
 		})
-		return this
 	}
 
 	isDateTime() {
-		this.add(this.isDateTime.name, (wrapper: PRulesWrapper) => {
+		return this.add(this.isDateTime.name, (wrapper: PRulesWrapper) => {
 			const message = `'${wrapper.label}' tiene un formato de fecha y hora no válido`
 			const newDate = new PDate(wrapper.value)
 			if (newDate.isInvalidDate) return message
 			wrapper.value = newDate
 		})
-		return this
 	}
 
 	isDate() {
@@ -52,7 +56,7 @@ export class PRules extends PRulesEngine {
 	}
 
 	isTime() {
-		this.add(this.isTime.name, (wrapper: PRulesWrapper) => {
+		return this.add(this.isTime.name, (wrapper: PRulesWrapper) => {
 			const message = `'${wrapper.label}' contiene un formato de hora no válido`
 			const value = wrapper.value.toString()
 			const parts = value.replace(/[.,]/g, ':').replace('m', '').match(/^([0-2]?[0-9])(:?)([0-5]?[0-9]?)(:?)([0-5]?[0-9]?)([ap]?)\.?m?\.?$/)
@@ -80,33 +84,27 @@ export class PRules extends PRulesEngine {
 			}
 			return message
 		})
-		return this
 	}
 
 	match(pattern: RegExp) {
-		this.isString()
-		this.add(this.match.name, (wrapper: PRulesWrapper) => {
+		return this.isString().add(this.match.name, (wrapper: PRulesWrapper) => {
 			if (!(wrapper.value as string).match(pattern)) return `'${wrapper.label}' no cumple con el formato de texto deseado`
 		})
-		return this
 	}
 
 	isNumber() {
-		this.add(this.isNumber.name, (wrapper: PRulesWrapper) => {
+		return this.add(this.isNumber.name, (wrapper: PRulesWrapper) => {
 			const message = `'${wrapper.label}' debe ser un número`
 			const value = Number(wrapper.value)
 			if (isNaN(value) || value == Infinity) return message
 			wrapper.value = value
 		})
-		return this
 	}
 
 	isInteger() {
-		this.isNumber()
-		this.add(this.isInteger.name, (wrapper: PRulesWrapper) => {
+		return this.isNumber().add(this.isInteger.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value != Math.floor(wrapper.value as number)) return `'${wrapper.label}' debe ser un número entero`
 		})
-		return this
 	}
 
 	isNatural() {
@@ -117,12 +115,10 @@ export class PRules extends PRulesEngine {
 		return this.isInteger().isGt(0)
 	}
 
-	onlyNumbers() {
-		this.isString()
-		this.add(this.onlyNumbers.name, (wrapper: PRulesWrapper) => {
+	isNumeric() {
+		return this.isString().add(this.isNumeric.name, (wrapper: PRulesWrapper) => {
 			if (!(wrapper.value as string).match(/^[0-9]+$/)) return `'${wrapper.label}' debe contener sólo números`
 		})
-		return this
 	}
 
 	maxLength(limit: number) {
@@ -352,52 +348,40 @@ export class PRules extends PRulesEngine {
 	}
 
 	upper() {
-		this.isString()
-		this.add(this.upper.name, (wrapper: PRulesWrapper) => {
+		return this.isString().add(this.upper.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = (wrapper.value as string).toUpperCase()
 		})
-		return this
 	}
 
 	lower() {
-		this.isString()
-		this.add(this.lower.name, (wrapper: PRulesWrapper) => {
+		return this.isString().add(this.lower.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = (wrapper.value as string).toLowerCase()
 		})
-		return this
 	}
 
 	decodeURI() {
-		this.isString()
-		this.add(this.decodeURI.name, (wrapper: PRulesWrapper) => {
+		return this.isString().add(this.decodeURI.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = decodeURI(wrapper.value as string)
 		})
-		return this
 	}
 
 	round(decimals: number) {
-		this.isNumber()
-		this.add(this.round.name, (wrapper: PRulesWrapper) => {
+		return this.isNumber().add(this.round.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = PUtilsNumber.round(wrapper.value as number, decimals)
 		})
-		return this
 	}
 
 	/* Reemplaza todos los dobles (o más) espacios juntos por uno simple */
 	cleanDoubleSpaces() {
-		this.isString()
-		this.add(this.cleanDoubleSpaces.name, (wrapper: PRulesWrapper) => {
+		return this.isString().add(this.cleanDoubleSpaces.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = (wrapper.value as string).replace(/\s{2,}/g, ' ')
 		})
-		return this
 	}
 
 	noSpaces() {
-		this.isString()
-		this.add(this.noSpaces.name, (wrapper: PRulesWrapper) => {
+		return this.isString().add(this.noSpaces.name, (wrapper: PRulesWrapper) => {
 			if ((wrapper.value as string).match(/\s/)) return `'${wrapper.label}' no debe contener 'espacios'`
 		})
-		return this
 	}
 
 
@@ -408,11 +392,9 @@ export class PRules extends PRulesEngine {
 	}
 
 	capitalize() {
-		this.isString()
-		this.add(this.capitalize.name, (wrapper: PRulesWrapper) => {
+		return this.isString().add(this.capitalize.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = PUtilsString.capitalize(wrapper.value as string)
 		})
-		return this
 	}
 
 	split(separator: string | RegExp) {
