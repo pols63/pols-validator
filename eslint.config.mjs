@@ -4,6 +4,9 @@ import tseslint from "typescript-eslint";
 
 export default [
 	{
+		ignores: ["dist/**"]
+	},
+	{
 		files: ["**/*.{ts}"],
 	},
 	{ languageOptions: { globals: globals.node } },
@@ -12,7 +15,7 @@ export default [
 	{
 		rules: {
 			"@typescript-eslint/no-unused-vars": "warn",
-			"@typescript-eslint/no-explicit-any": false,
+			"@typescript-eslint/no-explicit-any": "off",
 			"no-use-before-define": "off"
 		}
 	}

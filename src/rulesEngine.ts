@@ -65,7 +65,7 @@ export class PRulesEngine {
 		return this
 	}
 
-	validate<T>(target: unknown, safe = true): PRulesResponse<T> {
+	validate<T>(target: unknown, safe = true, customLabel?: string): PRulesResponse<T> {
 		const errorMessages: string[] = []
 
 		if (typeof target == 'string') target = target.trim()
@@ -73,7 +73,7 @@ export class PRulesEngine {
 		const defaultIsEmpty = this.default == null || (typeof this.default == 'string' && !this.default)
 		const isEmpty = target == null || (typeof target == 'string' && !target)
 
-		const label = this.label
+		const label = customLabel ?? this.label ?? 'El valor'
 
 		if (this.required && isEmpty) {
 			return {
@@ -103,7 +103,7 @@ export class PRulesEngine {
 		}
 
 		const wrapper: PRulesWrapper<T> = {
-			value: safe ? JSON.parse(JSON.stringify(target)) : target,
+			value: safe ? structuredClone(target) as T : target as T,
 			label
 		}
 		for (const validationFunction of this.collectionFunctions) {

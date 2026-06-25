@@ -9,23 +9,23 @@ export type PSanitizeParams = {
 }
 
 export class PRules extends PRulesEngine {
-	isAlphanumeric() {
-		this.add(this.isAlphanumeric.name, (wrapper: PRulesWrapper) => {
+	isString() {
+		this.add(this.isString.name, (wrapper: PRulesWrapper) => {
 			if (typeof wrapper.value == 'number') {
 				wrapper.value = wrapper.value.toString()
 			} else if (typeof wrapper.value != 'string') {
-				return `'${wrapper.label}' debe ser un alfanumérico`
+				return `'${wrapper.label}' debe ser una cadena de texto`
 			}
 		})
 		return this
 	}
 
 	isEmailAddress() {
-		this.isAlphanumeric()
+		this.isString()
 		this.add(this.isEmailAddress.name, (wrapper: PRulesWrapper<string>) => {
 			const message = `'${wrapper.label}' debe ser una dirección de correo válida`
 			if (wrapper.value.match(/^[^\sñáéíóúäëïöü@]+@[^\sñáéíóúäëïöü@]+\.[^\sñáéíóúäëïöü@]{2,}$/i)) {
-				if (wrapper.value.match(/[.]{2}|[+]|,/)) {
+				if (wrapper.value.match(/[.]{2}|,/)) {
 					return message
 				}
 			} else {
@@ -65,7 +65,11 @@ export class PRules extends PRulesEngine {
 				/* Si middle es diferente de vacío, es porque el usuario tiene la intención de especificar una hora del día, caso contrario, está indicando una duración. */
 				if (middle) {
 					if (hours >= 1 && hours <= 12) {
-						if (middle === 'p') hours += 12
+						if (middle === 'p') {
+							if (hours !== 12) hours += 12
+						} else { // middle === 'a'
+							if (hours === 12) hours = 0
+						}
 						wrapper.value = `${PUtilsString.padStart(hours, 2)}:${PUtilsString.padStart(minutes, 2)}:${PUtilsString.padStart(seconds, 2)}`
 						return
 					}
@@ -80,7 +84,7 @@ export class PRules extends PRulesEngine {
 	}
 
 	match(pattern: RegExp) {
-		this.isAlphanumeric()
+		this.isString()
 		this.add(this.match.name, (wrapper: PRulesWrapper) => {
 			if (!(wrapper.value as string).match(pattern)) return `'${wrapper.label}' no cumple con el formato de texto deseado`
 		})
@@ -114,7 +118,7 @@ export class PRules extends PRulesEngine {
 	}
 
 	onlyNumbers() {
-		this.isAlphanumeric()
+		this.isString()
 		this.add(this.onlyNumbers.name, (wrapper: PRulesWrapper) => {
 			if (!(wrapper.value as string).match(/^[0-9]+$/)) return `'${wrapper.label}' debe contener sólo números`
 		})
@@ -124,7 +128,7 @@ export class PRules extends PRulesEngine {
 	maxLength(limit: number) {
 		return this.add(this.maxLength.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value instanceof Array) {
-				return wrapper.value.length > limit ? `'${wrapper.label}' debe contener '${limit} ${limit == 1 ? 'elementos' : 'elementos'}' como máximo` : null
+				return wrapper.value.length > limit ? `'${wrapper.label}' debe contener '${limit} ${limit == 1 ? 'elemento' : 'elementos'}' como máximo` : null
 			} else if (typeof wrapper.value == 'string') {
 				return wrapper.value.length > limit ? `'${wrapper.label}' debe contener '${limit} ${limit == 1 ? 'caracter' : 'caracteres'}' como máximo` : null
 			} else {
@@ -136,7 +140,7 @@ export class PRules extends PRulesEngine {
 	minLength(limit: number) {
 		return this.add(this.minLength.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value instanceof Array) {
-				return wrapper.value.length < limit ? `'${wrapper.label}' debe contener '${limit} ${limit == 1 ? 'elementos' : 'elementos'}' como mínimo` : null
+				return wrapper.value.length < limit ? `'${wrapper.label}' debe contener '${limit} ${limit == 1 ? 'elemento' : 'elementos'}' como mínimo` : null
 			} else if (typeof wrapper.value == 'string') {
 				return wrapper.value.length < limit ? `'${wrapper.label}' debe contener '${limit} ${limit == 1 ? 'caracter' : 'caracteres'}' como mínimo` : null
 			} else {
@@ -148,9 +152,9 @@ export class PRules extends PRulesEngine {
 	hasFixedLength(limit: number) {
 		return this.add(this.hasFixedLength.name, (wrapper: PRulesWrapper) => {
 			if (wrapper.value instanceof Array) {
-				return wrapper.value.length < limit ? `'${wrapper.label}' debe contener sólo '${limit} ${limit == 1 ? 'elementos' : 'elementos'}'` : null
+				return wrapper.value.length !== limit ? `'${wrapper.label}' debe contener sólo '${limit} ${limit == 1 ? 'elemento' : 'elementos'}'` : null
 			} else if (typeof wrapper.value == 'string') {
-				return wrapper.value.length < limit ? `'${wrapper.label}' debe contener sólo '${limit} ${limit == 1 ? 'caracter' : 'caracteres'}'` : null
+				return wrapper.value.length !== limit ? `'${wrapper.label}' debe contener sólo '${limit} ${limit == 1 ? 'caracter' : 'caracteres'}'` : null
 			} else {
 				return `'${wrapper.label}' no es de un tipo válido`
 			}
@@ -158,7 +162,7 @@ export class PRules extends PRulesEngine {
 	}
 
 	left(limit: number) {
-		return this.isAlphanumeric().add(this.left.name, (wrapper: PRulesWrapper) => {
+		return this.isString().add(this.left.name, (wrapper: PRulesWrapper) => {
 			(wrapper.value as string) = (wrapper.value as string).substring(0, limit)
 		})
 	}
@@ -171,7 +175,7 @@ export class PRules extends PRulesEngine {
 					const value = JSON.parse(wrapper.value)
 					if (!(value instanceof Array)) return message
 					wrapper.value = value
-				} catch (err) {
+				} catch {
 					return message
 				}
 			} else {
@@ -184,8 +188,9 @@ export class PRules extends PRulesEngine {
 			const messages: string[] = []
 			for (const [i, element] of wrapper.value.entries()) {
 				const rules = rulesGenerator(i)
-				rules.label = `${this.label ? `${this.label}${rules.label ? this.separator : ''}` : ''}${rules.label ?? ''}`
-				const result = rules.validate(element, false)
+				const elementLabel = rules.label ?? `Elemento ${i + 1}`
+				const nestedLabel = `${wrapper.label ? `${wrapper.label}${this.separator}` : ''}${elementLabel}`
+				const result = rules.validate(element, false, nestedLabel)
 				if (result.error == true) {
 					wrapper.value[i] = result.interim
 					messages.push(...result.messages)
@@ -218,7 +223,7 @@ export class PRules extends PRulesEngine {
 
 	hasElements(rulesGenerator?: (index: number) => PRules) {
 		return this.isArray(rulesGenerator).add(this.hasElements.name, (wrapper: PRulesWrapper<unknown[]>) => {
-			if (!wrapper.value.length) return `'${wrapper.label}' debe contenedor al menos un elemento`
+			if (!wrapper.value.length) return `'${wrapper.label}' debe contener al menos un elemento`
 		})
 	}
 
@@ -276,10 +281,10 @@ export class PRules extends PRulesEngine {
 				const errorMessages: string[] = []
 				for (const key in schema) {
 					const rulesInside = schema[key]
-					const labelIndise = rulesInside.label ?? key
-					rulesInside.label = `${this.label ? `${this.label}${this.separator}` : ''}${labelIndise}`
+					const labelInside = rulesInside.label ?? key
+					const nestedLabel = `${wrapper.label ? `${wrapper.label}${this.separator}` : ''}${labelInside}`
 
-					const propertyResult = rulesInside.validate(wrapper.value[key], false)
+					const propertyResult = rulesInside.validate(wrapper.value[key], false, nestedLabel)
 					if (propertyResult.error == true) {
 						if (propertyResult.interim !== undefined) interim[key] = propertyResult.interim
 						errorMessages.push(...propertyResult.messages)
@@ -308,11 +313,13 @@ export class PRules extends PRulesEngine {
 					case 'SÍ':
 					case 'Y':
 					case 'YES':
+					case 'TRUE':
 						wrapper.value = true
 						return
 					case '0':
 					case 'N':
 					case 'NO':
+					case 'FALSE':
 						wrapper.value = false
 						return
 					default: {
@@ -345,7 +352,7 @@ export class PRules extends PRulesEngine {
 	}
 
 	upper() {
-		this.isAlphanumeric()
+		this.isString()
 		this.add(this.upper.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = (wrapper.value as string).toUpperCase()
 		})
@@ -353,7 +360,7 @@ export class PRules extends PRulesEngine {
 	}
 
 	lower() {
-		this.isAlphanumeric()
+		this.isString()
 		this.add(this.lower.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = (wrapper.value as string).toLowerCase()
 		})
@@ -361,7 +368,7 @@ export class PRules extends PRulesEngine {
 	}
 
 	decodeURI() {
-		this.isAlphanumeric()
+		this.isString()
 		this.add(this.decodeURI.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = decodeURI(wrapper.value as string)
 		})
@@ -378,7 +385,7 @@ export class PRules extends PRulesEngine {
 
 	/* Reemplaza todos los dobles (o más) espacios juntos por uno simple */
 	cleanDoubleSpaces() {
-		this.isAlphanumeric()
+		this.isString()
 		this.add(this.cleanDoubleSpaces.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = (wrapper.value as string).replace(/\s{2,}/g, ' ')
 		})
@@ -386,7 +393,7 @@ export class PRules extends PRulesEngine {
 	}
 
 	noSpaces() {
-		this.isAlphanumeric()
+		this.isString()
 		this.add(this.noSpaces.name, (wrapper: PRulesWrapper) => {
 			if ((wrapper.value as string).match(/\s/)) return `'${wrapper.label}' no debe contener 'espacios'`
 		})
@@ -395,13 +402,13 @@ export class PRules extends PRulesEngine {
 
 
 	replace(search: string | RegExp, replace: string | ((substring: string, ...args: any[]) => string)) {
-		return this.isAlphanumeric().add(this.replace.name, (wrapper: PRulesWrapper) => {
+		return this.isString().add(this.replace.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = (wrapper.value as string).replace(search, replace as any)
 		})
 	}
 
 	capitalize() {
-		this.isAlphanumeric()
+		this.isString()
 		this.add(this.capitalize.name, (wrapper: PRulesWrapper) => {
 			wrapper.value = PUtilsString.capitalize(wrapper.value as string)
 		})
@@ -409,7 +416,7 @@ export class PRules extends PRulesEngine {
 	}
 
 	split(separator: string | RegExp) {
-		return this.isAlphanumeric().add(this.split.name, (wrapper: PRulesWrapper<string>) => {
+		return this.isString().add(this.split.name, (wrapper: PRulesWrapper<string>) => {
 			wrapper.value = wrapper.value.split(separator) as any
 		})
 	}
@@ -433,7 +440,7 @@ export class PRules extends PRulesEngine {
 	}
 
 	sanitize(params?: PSanitizeParams) {
-		return this.isAlphanumeric().add(this.sanitize.name, (wrapper: PRulesWrapper) => {
+		return this.isString().add(this.sanitize.name, (wrapper: PRulesWrapper) => {
 			const config: Config = {}
 			if (params) {
 				if (params.allowedTags) config.ALLOWED_TAGS = params.allowedTags
