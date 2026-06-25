@@ -12,3 +12,7 @@ export const rules: PRulesCreator<PRules> = (...args: any[]) => new PRules(...ar
 export { PRules, PRulesParams, PSanitizeParams }
 
 export { PRulesResponse, PRulesWrapper, PRulesFunction } from './rulesEngine'
+
+export function createRulesCreator<T>(ctor: new (...args: any[]) => T): PRulesCreator<T> {
+	return (...args: any[]) => new ctor(...args)
+}

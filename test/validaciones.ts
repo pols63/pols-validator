@@ -1,4 +1,4 @@
-import { rules } from '../src/index'
+import { rules, createRulesCreator, PRules } from '../src/index'
 
 console.log("--- Pruebas originales con renombrado isString ---")
 const objeto = {
@@ -88,5 +88,35 @@ console.assert(alphaGood.error === false, "ERROR: Caracteres españoles con núm
 const alphaBad = rules().isAlphanumeric().validate("User 123!") as any
 console.log("User 123! -> error:", alphaBad.error)
 console.assert(alphaBad.error === true, "ERROR: Espacios y símbolos deberían ser alfanuméricos inválidos")
+
+console.log("\n--- Pruebas de .custom() ---")
+const customGood = rules("Código").isString().custom((val) => val.startsWith("ABC-"), "Debe comenzar con ABC-").validate("ABC-123") as any
+console.log("ABC-123 -> error:", customGood.error)
+console.assert(customGood.error === false, "ERROR: ABC-123 debería ser válido")
+
+const customBad = rules("Código").isString().custom((val) => val.startsWith("ABC-"), "Debe comenzar con ABC-").validate("XYZ-123") as any
+console.log("XYZ-123 -> error:", customBad.error, "message:", customBad.messages[0])
+console.assert(customBad.error === true && customBad.messages[0] === "Debe comenzar con ABC-", "ERROR: XYZ-123 debería ser inválido con mensaje custom")
+
+console.log("\n--- Pruebas de createRulesCreator ---")
+class MisReglas extends PRules {
+	isDNI() {
+		return this.add("isDNI", (wrapper) => {
+			if (!(wrapper.value as string).match(/^[0-9]{8}[A-Z]$/)) {
+				return `'${wrapper.label}' no es un DNI válido`
+			}
+		})
+	}
+}
+
+const myRules = createRulesCreator(MisReglas)
+
+const dniGood = myRules("Documento").isString().isDNI().validate("12345678Z") as any
+console.log("12345678Z -> error:", dniGood.error)
+console.assert(dniGood.error === false, "ERROR: 12345678Z debería ser un DNI válido")
+
+const dniBad = myRules("Documento").isString().isDNI().validate("123456789Z") as any
+console.log("123456789Z -> error:", dniBad.error, "message:", dniBad.messages[0])
+console.assert(dniBad.error === true && dniBad.messages[0] === "'Documento' no es un DNI válido", "ERROR: 123456789Z debería ser un DNI inválido")
 
 console.log("\n¡Pruebas completadas!")

@@ -434,4 +434,16 @@ export class PRules extends PRulesEngine {
 			wrapper.value = sanitize((wrapper.value as string).trim(), config)
 		})
 	}
+
+	custom(validationFn: (value: any) => boolean | string | string[], errorMessage?: string) {
+		return this.add('custom', (wrapper: PRulesWrapper) => {
+			const result = validationFn(wrapper.value)
+			if (result === false) {
+				return errorMessage ?? `'${wrapper.label}' no es válido`
+			}
+			if (typeof result === 'string' || Array.isArray(result)) {
+				return result
+			}
+		})
+	}
 }
