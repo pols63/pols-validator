@@ -95,7 +95,11 @@ export class PRules extends PRulesEngine {
 	isNumber() {
 		return this.add(this.isNumber.name, (wrapper: PRulesWrapper) => {
 			const message = `'${wrapper.label}' debe ser un número`
-			const value = Number(wrapper.value)
+			let rawValue = wrapper.value
+			if (typeof rawValue === 'string') {
+				rawValue = rawValue.replace(/[\s,]/g, '')
+			}
+			const value = Number(rawValue)
 			if (isNaN(value) || value == Infinity) return message
 			wrapper.value = value
 		})

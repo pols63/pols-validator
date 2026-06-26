@@ -119,4 +119,17 @@ const dniBad = myRules("Documento").isString().isDNI().validate("123456789Z") as
 console.log("123456789Z -> error:", dniBad.error, "message:", dniBad.messages[0])
 console.assert(dniBad.error === true && dniBad.messages[0] === "'Documento' no es un DNI válido", "ERROR: 123456789Z debería ser un DNI inválido")
 
+console.log("\n--- Pruebas de comas y espacios en isNumber ---")
+const commaSpaceGood1 = rules().isNumber().validate("1,200") as any
+console.log("'1,200' -> sanitized:", commaSpaceGood1.sanitized, "error:", commaSpaceGood1.error)
+console.assert(commaSpaceGood1.sanitized === 1200 && !commaSpaceGood1.error, "ERROR: '1,200' debería ser 1200")
+
+const commaSpaceGood2 = rules().isNumber().validate("1 200 300.50") as any
+console.log("'1 200 300.50' -> sanitized:", commaSpaceGood2.sanitized, "error:", commaSpaceGood2.error)
+console.assert(commaSpaceGood2.sanitized === 1200300.50 && !commaSpaceGood2.error, "ERROR: '1 200 300.50' debería ser 1200300.50")
+
+const commaSpaceGood3 = rules().isNumber().validate(" 1, 200 ") as any
+console.log("' 1, 200 ' -> sanitized:", commaSpaceGood3.sanitized, "error:", commaSpaceGood3.error)
+console.assert(commaSpaceGood3.sanitized === 1200 && !commaSpaceGood3.error, "ERROR: ' 1, 200 ' debería ser 1200")
+
 console.log("\n¡Pruebas completadas!")
