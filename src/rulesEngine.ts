@@ -1,3 +1,75 @@
+function cloneSafe<T>(value: T): T {
+	if (value === null || typeof value !== 'object') {
+		return value
+	}
+
+	const PDateClass = PRulesEngine.PDateClass
+	if (PDateClass) {
+		if (value instanceof PDateClass) {
+			return (value as any).clone()
+		}
+	}
+
+	if (value instanceof Date) {
+		return new Date(value.getTime()) as any
+	}
+
+	if (Array.isArray(value)) {
+		return value.map(cloneSafe) as any
+	}
+
+	if (value instanceof Map) {
+		const copy = new Map()
+		for (const [k, v] of value) {
+			copy.set(cloneSafe(k), cloneSafe(v))
+		}
+		return copy as any
+	}
+
+	if (value instanceof Set) {
+		const copy = new Set()
+		for (const v of value) {
+			copy.add(cloneSafe(v))
+		}
+		return copy as any
+	}
+
+	const prototype = Object.getPrototypeOf(value)
+	if (prototype === null || prototype === Object.prototype) {
+		const copy = {} as any
+		for (const key in value) {
+			if (Object.prototype.hasOwnProperty.call(value, key)) {
+				copy[key] = cloneSafe(value[key])
+			}
+		}
+		return copy
+	}
+
+	if (typeof (value as any).clone === 'function') {
+		try {
+			return (value as any).clone()
+		} catch {
+			// ignore
+		}
+	}
+
+	try {
+		return structuredClone(value)
+	} catch {
+		try {
+			const copy = Object.create(prototype)
+			for (const key in value) {
+				if (Object.prototype.hasOwnProperty.call(value, key)) {
+					copy[key] = cloneSafe(value[key])
+				}
+			}
+			return copy
+		} catch {
+			return value
+		}
+	}
+}
+
 export type PRulesParams = {
 	label?: string
 	separator?: string
@@ -27,6 +99,16 @@ export type PRulesResponse<T> = {
 }
 
 export class PRulesEngine {
+	static _PDateClass: any
+
+	static get PDateClass() {
+		return PRulesEngine._PDateClass
+	}
+
+	static set PDateClass(val: any) {
+		PRulesEngine._PDateClass = val
+	}
+
 	prefix: string
 	nestedLabel: string
 	label: string
@@ -111,7 +193,7 @@ export class PRulesEngine {
 		}
 
 		const wrapper: PRulesWrapper<T> = {
-			value: safe ? structuredClone(target) as T : target as T,
+			value: safe ? cloneSafe(target) as T : target as T,
 			label
 		}
 		for (const validationFunction of this.collectionFunctions) {

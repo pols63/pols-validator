@@ -1,5 +1,5 @@
 import { PRulesEngine, PRulesWrapper } from "./rulesEngine"
-import { PDate } from "pols-date"
+import type { PDate } from "pols-date"
 import { Config, sanitize } from 'isomorphic-dompurify'
 import { PUtilsNumber, PUtilsString } from "pols-utils"
 
@@ -42,8 +42,18 @@ export class PRules extends PRulesEngine {
 
 	isDateTime() {
 		return this.add(this.isDateTime.name, (wrapper: PRulesWrapper) => {
+			const PDateClass = PRulesEngine.PDateClass
+			if (!PDateClass) {
+				throw new Error("Se requiere definir la clase estática PDateClass en PRules antes de utilizar la validación de fecha")
+			}
+
 			const message = `'${wrapper.label}' tiene un formato de fecha y hora no válido`
-			const newDate = new PDate(wrapper.value)
+			let newDate: any
+			if (wrapper.value instanceof PDateClass) {
+				newDate = (wrapper.value as any).clone()
+			} else {
+				newDate = new PDateClass(wrapper.value)
+			}
 			if (newDate.isInvalidDate) return message
 			wrapper.value = newDate
 		})
@@ -252,7 +262,8 @@ export class PRules extends PRulesEngine {
 
 	beforeOrSameAsNow() {
 		return this.isDateTime().add(this.beforeOrSameAsNow.name, (wrapper: PRulesWrapper<PDate>) => {
-			const now = new PDate
+			const PDateClass = PRulesEngine.PDateClass
+			const now = new PDateClass
 			if (wrapper.value.timestamp > now.timestamp) return `'${wrapper.label}' debe ser anterior o igual a 'ahora'`
 		})
 	}
