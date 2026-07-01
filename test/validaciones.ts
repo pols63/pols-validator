@@ -151,4 +151,15 @@ const userPayload = {
 const validationResult = schema.validate(userPayload) as any
 console.log("Aprobadores validation result messages:", validationResult.messages)
 
+console.log("\n--- Pruebas de la incidencia del usuario (Aprobadores sin etiqueta de elemento) ---")
+const schemaNoElementLabel = rules({ default: {} }).isObject({
+	Aprobadores: rules({ label: 'Lista de Aprobadores', required: true }).isArray(i => rules().isObject({
+		idAprobador: rules({ label: 'ID de Aprobador', required: true }).isString(),
+		Etapa: rules({ required: true }).isNaturalNoZero(),
+	})).hasElements()
+})
+
+const validationResultNoElementLabel = schemaNoElementLabel.validate(userPayload) as any
+console.log("Aprobadores sin etiqueta de elemento messages:", validationResultNoElementLabel.messages)
+
 console.log("\n¡Pruebas completadas!")

@@ -6,7 +6,7 @@
 	"types": "dist/index.d.ts",
 	"scripts": {
 		"build": "npx tsc",
-		"test": "npx ts-node-dev -r tsconfig-paths/register --project tsconfig.json test/validaciones.ts",
+		"test": "npx ts-node-dev -r tsconfig-paths/register --project tsconfig.json",
 		"export": "npm run build && npm publish"
 	},
 	"exports": {

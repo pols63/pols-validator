@@ -28,6 +28,7 @@ export type PRulesResponse<T> = {
 
 export class PRulesEngine {
 	prefix: string
+	nestedLabel: string
 	label: string
 	separator: string
 	required: boolean = false
@@ -42,7 +43,7 @@ export class PRulesEngine {
 	constructor(a1?: any, a2?: any, a3?: any) {
 		if (typeof a1 == 'string') {
 			this.label = a1
-			this.separator = ' > '
+			this.separator = '>'
 			this.required = a2 ?? false
 			this.default = a3 ?? null
 		} else if (typeof a1 == 'boolean') {
@@ -51,7 +52,7 @@ export class PRulesEngine {
 			this.default = a2 ?? null
 		} else {
 			this.label = a1?.label
-			this.separator = a1?.separator ?? ' > '
+			this.separator = a1?.separator ?? '>'
 			this.required = a1 && 'required' in a1 ? a1?.required : false
 			this.default = a1 && 'default' in a1 ? a1?.default : null
 		}
@@ -65,7 +66,7 @@ export class PRulesEngine {
 		return this
 	}
 
-	validate<T>(target: unknown, safe = true, customLabel?: string): PRulesResponse<T> {
+	validate<T>(target: unknown, safe = true): PRulesResponse<T> {
 		const errorMessages: string[] = []
 
 		if (typeof target == 'string') target = target.trim()
@@ -73,14 +74,21 @@ export class PRulesEngine {
 		const defaultIsEmpty = this.default == null || (typeof this.default == 'string' && !this.default)
 		const isEmpty = target == null || (typeof target == 'string' && !target)
 
-		const label = customLabel ?? this.label ?? 'El valor'
+		let label: string
+		if (this.label && this.nestedLabel) {
+			label = `${this.nestedLabel} ${this.separator} ${this.label}`
+		} else if (this.label) {
+			label = this.label
+		} else if (this.nestedLabel) {
+			label = this.nestedLabel
+		}
 
 		if (this.required && isEmpty) {
 			return {
 				error: true,
 				success: false,
 				interim: undefined,
-				messages: [`'${label}' es requerido`]
+				messages: [`'${label ?? 'El parámetro'}' es requerido`]
 			}
 		}
 

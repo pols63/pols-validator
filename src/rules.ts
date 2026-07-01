@@ -188,10 +188,8 @@ export class PRules extends PRulesEngine {
 			const messages: string[] = []
 			for (const [i, element] of wrapper.value.entries()) {
 				const rules = rulesGenerator(i)
-				const elementLabel = rules.label ?? `Elemento ${i + 1}`
-				const isDefaultLabel = wrapper.label === 'El valor'
-				const nestedLabel = `${wrapper.label && !isDefaultLabel ? `${wrapper.label}${this.separator}` : ''}${elementLabel}`
-				const result = rules.validate(element, false, nestedLabel)
+				rules.nestedLabel = wrapper.label
+				const result = rules.validate(element, false)
 				if (result.error == true) {
 					wrapper.value[i] = result.interim
 					messages.push(...result.messages)
@@ -282,11 +280,8 @@ export class PRules extends PRulesEngine {
 				const errorMessages: string[] = []
 				for (const key in schema) {
 					const rulesInside = schema[key]
-					const labelInside = rulesInside.label ?? key
-					const isDefaultLabel = wrapper.label === 'El valor'
-					const nestedLabel = `${wrapper.label && !isDefaultLabel ? `${wrapper.label}${this.separator}` : ''}${labelInside}`
-
-					const propertyResult = rulesInside.validate(wrapper.value[key], false, nestedLabel)
+					rulesInside.nestedLabel = wrapper.label
+					const propertyResult = rulesInside.validate(wrapper.value[key], false)
 					if (propertyResult.error == true) {
 						if (propertyResult.interim !== undefined) interim[key] = propertyResult.interim
 						errorMessages.push(...propertyResult.messages)
