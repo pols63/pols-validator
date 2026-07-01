@@ -29,7 +29,6 @@
 	},
 	"dependencies": {
 		"isomorphic-dompurify": "^2.21.0",
-		"pols-date": "^2.0.2",
 		"pols-utils": "^6.0.1"
 	}
 }
