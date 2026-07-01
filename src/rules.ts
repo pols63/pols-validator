@@ -281,6 +281,7 @@ export class PRules extends PRulesEngine {
 				for (const key in schema) {
 					const rulesInside = schema[key]
 					rulesInside.nestedLabel = wrapper.label
+					if (!rulesInside.label) rulesInside.label = key
 					const propertyResult = rulesInside.validate(wrapper.value[key], false)
 					if (propertyResult.error == true) {
 						if (propertyResult.interim !== undefined) interim[key] = propertyResult.interim
