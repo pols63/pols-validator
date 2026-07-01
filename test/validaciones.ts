@@ -132,4 +132,23 @@ const commaSpaceGood3 = rules().isNumber().validate(" 1, 200 ") as any
 console.log("' 1, 200 ' -> sanitized:", commaSpaceGood3.sanitized, "error:", commaSpaceGood3.error)
 console.assert(commaSpaceGood3.sanitized === 1200 && !commaSpaceGood3.error, "ERROR: ' 1, 200 ' debería ser 1200")
 
+console.log("\n--- Pruebas de la incidencia del usuario (Aprobadores) ---")
+const schema = rules({ default: {} }).isObject({
+	Aprobadores: rules({ label: 'Lista de Aprobadores', required: true }).isArray(i => rules({ label: `Aprobador ${i + 1}` }).isObject({
+		idAprobador: rules({ label: 'ID de Aprobador', required: true }).isString(),
+		Etapa: rules({ required: true }).isNaturalNoZero(),
+	})).hasElements()
+})
+
+const userPayload = {
+	Aprobadores: [
+		{
+			Etapa: 1
+		}
+	]
+}
+
+const validationResult = schema.validate(userPayload) as any
+console.log("Aprobadores validation result messages:", validationResult.messages)
+
 console.log("\n¡Pruebas completadas!")

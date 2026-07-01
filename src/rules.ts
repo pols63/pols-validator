@@ -189,7 +189,8 @@ export class PRules extends PRulesEngine {
 			for (const [i, element] of wrapper.value.entries()) {
 				const rules = rulesGenerator(i)
 				const elementLabel = rules.label ?? `Elemento ${i + 1}`
-				const nestedLabel = `${wrapper.label ? `${wrapper.label}${this.separator}` : ''}${elementLabel}`
+				const isDefaultLabel = wrapper.label === 'El valor'
+				const nestedLabel = `${wrapper.label && !isDefaultLabel ? `${wrapper.label}${this.separator}` : ''}${elementLabel}`
 				const result = rules.validate(element, false, nestedLabel)
 				if (result.error == true) {
 					wrapper.value[i] = result.interim
@@ -282,7 +283,8 @@ export class PRules extends PRulesEngine {
 				for (const key in schema) {
 					const rulesInside = schema[key]
 					const labelInside = rulesInside.label ?? key
-					const nestedLabel = `${wrapper.label ? `${wrapper.label}${this.separator}` : ''}${labelInside}`
+					const isDefaultLabel = wrapper.label === 'El valor'
+					const nestedLabel = `${wrapper.label && !isDefaultLabel ? `${wrapper.label}${this.separator}` : ''}${labelInside}`
 
 					const propertyResult = rulesInside.validate(wrapper.value[key], false, nestedLabel)
 					if (propertyResult.error == true) {
