@@ -92,6 +92,19 @@ if (resultado.success) {
 * `.isTime()`: Valida formatos de hora (AM/PM y duración) y los estandariza al formato de 24 horas `HH:MM:SS`.
 * `.beforeOrSameAsNow()`: Valida que la fecha/hora sea anterior o igual al momento actual.
 
+> [!IMPORTANT]
+> **Configuración Obligatoria para Fechas y Horas (`PDateClass`):**
+> Para evitar problemas de discrepancia de prototipos (conflictos de versión si tu proyecto y el validador tienen instaladas copias independientes de `pols-date` en `node_modules`), **debes** inyectar tu clase `PDate` a `PRules` antes de utilizar cualquier regla de fecha:
+>
+> ```typescript
+> import { PRules } from 'pols-validator'
+> import { PDate } from 'pols-date'
+> 
+> // Configuración estática obligatoria al arrancar la aplicación
+> PRules.PDateClass = PDate
+> ```
+> Si no se define esta clase estática, las validaciones de fecha (`isDate`, `isDateTime`, `beforeOrSameAsNow`) arrojarán un error descriptivo en tiempo de ejecución.
+
 ### Colecciones y Estructuras
 * `.isObject(schema?: Record<string, PRules>)`: Valida objetos y aplica esquemas anidados.
 * `.isArray(rulesGenerator?: (index: number) => PRules)`: Valida arrays y aplica reglas opcionales por elemento.
